@@ -22,6 +22,9 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        Intent intent = new Intent(this, TimerActivity.class);
+        startActivity(intent);
     }
 
     private void launchTimer(View view) {
