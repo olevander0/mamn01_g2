@@ -17,9 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 public class TimerActivity extends AppCompatActivity implements SensorEventListener {
     private ImageView ivDial;
     private SensorManager sensorManager;
-    private Sensor accelerometer;
-
-    private float x, y;
+    private Sensor rotationVector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,21 +32,35 @@ public class TimerActivity extends AppCompatActivity implements SensorEventListe
 
         ivDial = findViewById(R.id.iv_dial);
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-        x = 0;
-        y = 0;
+        rotationVector = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        x = sensorEvent.values[0];
-        y = sensorEvent.values[1];
+        if (sensorEvent.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
+            float[] rotationMatrix = new float[9];
+            SensorManager.getRotationMatrixFromVector(rotationMatrix, sensorEvent.values);
 
-        double angleRadian = Math.atan2(x, y);
-        int currentAngle = (int) Math.toDegrees(angleRadian);
+            float[] orientation = new float[3];
+            SensorManager.getOrientation(rotationMatrix, orientation);
 
-        ivDial.setRotation(currentAngle);
+            float azimuthRadians = orientation[0];
+            float azimuthDegrees = (float) Math.toDegrees(azimuthRadians);
+
+            ivDial.setRotation(-azimuthDegrees);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sensorManager.registerListener(this, rotationVector, SensorManager.SENSOR_DELAY_UI);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorManager.unregisterListener(this);
     }
 
 
