@@ -5,7 +5,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -29,10 +31,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        Intent intent = new Intent(this, TimerActivity.class);
+        startActivity(intent);
+    }
+
+    private void launchTimer(View view) {
+        Intent intent = new Intent(this, TimerActivity.class);
+        startActivity(intent);
 
         clockView = findViewById(R.id.clockView);
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        
+
         if (sensorManager != null) {
             rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
             accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -68,13 +83,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void handleRotation(float[] rotationVector) {
         float[] rotationMatrix = new float[9];
         SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVector);
-        
+
         float[] orientation = new float[3];
         SensorManager.getOrientation(rotationMatrix, orientation);
-        
+
         // Azimuth is orientation[0], range [-PI, PI]
         float azimuthDegrees = (float) Math.toDegrees(orientation[0]);
-        
+
         if (isFirstUpdate) {
             lastAzimuth = azimuthDegrees;
             isFirstUpdate = false;
@@ -82,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         float delta = azimuthDegrees - lastAzimuth;
-        
+
         // Handle wrap-around (e.g. from 179 to -179)
         if (delta > 180) delta -= 360;
         else if (delta < -180) delta += 360;
@@ -91,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         lastAzimuth = azimuthDegrees;
 
         // One full rotation (360 degrees) equals 60 seconds
-        int newSeconds = (int) (totalRotation / 6); 
+        int newSeconds = (int) (totalRotation / 6);
         if (newSeconds != seconds) {
             seconds = Math.max(0, newSeconds);
             clockView.setTime(seconds);
@@ -107,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         float z = values[2];
 
         float acceleration = (float) Math.sqrt(x * x + y * y + z * z) - SensorManager.GRAVITY_EARTH;
-        
+
         if (acceleration > SHAKE_THRESHOLD) {
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastShakeTime > 500) { // debounce shake
