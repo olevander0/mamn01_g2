@@ -5,11 +5,12 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -31,19 +32,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-        Intent intent = new Intent(this, TimerActivity.class);
-        startActivity(intent);
-    }
-
-    private void launchTimer(View view) {
-        Intent intent = new Intent(this, TimerActivity.class);
-        startActivity(intent);
 
         clockView = findViewById(R.id.clockView);
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -68,7 +62,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onPause() {
         super.onPause();
-        sensorManager.unregisterListener(this);
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(this);
+        }
     }
 
     @Override
@@ -87,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         float[] orientation = new float[3];
         SensorManager.getOrientation(rotationMatrix, orientation);
 
-        // Azimuth is orientation[0], range [-PI, PI]
         float azimuthDegrees = (float) Math.toDegrees(orientation[0]);
 
         if (isFirstUpdate) {
@@ -98,22 +93,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         float delta = azimuthDegrees - lastAzimuth;
 
-        // Handle wrap-around (e.g. from 179 to -179)
         if (delta > 180) delta -= 360;
         else if (delta < -180) delta += 360;
 
         totalRotation += delta;
         lastAzimuth = azimuthDegrees;
 
-        // One full rotation (360 degrees) equals 60 seconds
         int newSeconds = (int) (totalRotation / 6);
         if (newSeconds != seconds) {
             seconds = Math.max(0, newSeconds);
-            clockView.setTime(seconds);
+            if (clockView != null) {
+                clockView.setTime(seconds);
+            }
         }
 
-        // Förösk till att hålla klockan stadig när mobilen roterar men funkar inte riktigt än.
-        clockView.setRotationDegrees(azimuthDegrees);
+        if (clockView != null) {
+            clockView.setRotationDegrees(azimuthDegrees);
+        }
     }
 
     private void handleShake(float[] values) {
@@ -125,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if (acceleration > SHAKE_THRESHOLD) {
             long currentTime = System.currentTimeMillis();
-            if (currentTime - lastShakeTime > 500) { // debounce shake
+            if (currentTime - lastShakeTime > 500) {
                 resetTimer();
                 lastShakeTime = currentTime;
             }
@@ -135,7 +131,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void resetTimer() {
         seconds = 0;
         totalRotation = 0;
-        clockView.setTime(0);
+        if (clockView != null) {
+            clockView.setTime(0);
+        }
     }
 
     @Override
