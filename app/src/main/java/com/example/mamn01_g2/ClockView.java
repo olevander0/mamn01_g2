@@ -63,17 +63,17 @@ public class ClockView extends View {
         canvas.drawCircle(centerX, centerY, radius, circlePaint);
 
         // Ritar ut en blå progress linje
-        // Start from top 
+        // Start from top (-90 degrees)
         canvas.drawArc(rectF, -90, progressAngle, false, progressPaint);
 
         // Här hanteras rotationen.
-        // Lägger till -90 grader för att klockan ska peka "nedåt" mot användaren
+        // Vi tar bort den extra -90 offseten eller justerar den för att se om det pekar rätt.
+        // Prova att bara använda -rotationDegrees först.
         canvas.save();
-        canvas.rotate(-rotationDegrees - 90, centerX, centerY);
+        canvas.rotate(-rotationDegrees, centerX, centerY);
         
         // Rita tidstexten
         String timeText = formatTime(seconds);
-        // Centrera texten vertikalt mer exakt
         float textOffset = (textPaint.descent() + textPaint.ascent()) / 2;
         canvas.drawText(timeText, centerX, centerY - textOffset, textPaint);
         
@@ -93,7 +93,6 @@ public class ClockView extends View {
 
     public void setTime(int seconds) {
         this.seconds = Math.max(0, seconds);
-        // Map seconds to progress angle (e.g., 360 degrees = 60 seconds)
         this.progressAngle = (this.seconds % 60) * 6f;
         invalidate();
     }
