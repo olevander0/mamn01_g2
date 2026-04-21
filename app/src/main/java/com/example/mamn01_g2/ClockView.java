@@ -8,6 +8,7 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Locale;
@@ -17,30 +18,51 @@ public class ClockView extends View {
     private Paint progressPaint;
     private Paint textPaint;
     private RectF rectF;
-    
+
     private float rotationDegrees = 0;
     private int seconds = 0;
     private float progressAngle = 0;
 
     public ClockView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context, attrs);
     }
 
-    private void init() {
+    private void init(Context context, AttributeSet attrs) {
+        int bgColor = Color.LTGRAY;
+        int progColor = Color.BLUE;
+        int txtColor = Color.BLACK;
+        float strokeW = 15f;
+
+        if (attrs != null) {
+            android.content.res.TypedArray a = context.getTheme().obtainStyledAttributes(
+                    attrs,
+                    R.styleable.ClockView,
+                    0, 0);
+
+            try {
+                bgColor = a.getColor(R.styleable.ClockView_clockBackgroundColor, bgColor);
+                progColor = a.getColor(R.styleable.ClockView_clockProgressColor, progColor);
+                txtColor = a.getColor(R.styleable.ClockView_clockTextColor, txtColor);
+                strokeW = a.getDimension(R.styleable.ClockView_clockStrokeWidth, strokeW);
+            } finally {
+                a.recycle();
+            }
+        }
+
         circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        circlePaint.setColor(Color.LTGRAY);
+        circlePaint.setColor(bgColor);
         circlePaint.setStyle(Paint.Style.STROKE);
         circlePaint.setStrokeWidth(10f);
 
         progressPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        progressPaint.setColor(Color.BLUE);
+        progressPaint.setColor(progColor);
         progressPaint.setStyle(Paint.Style.STROKE);
-        progressPaint.setStrokeWidth(15f);
+        progressPaint.setStrokeWidth(strokeW);
         progressPaint.setStrokeCap(Paint.Cap.ROUND);
 
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        textPaint.setColor(Color.BLACK);
+        textPaint.setColor(txtColor);
         textPaint.setTextSize(100f);
         textPaint.setTextAlign(Paint.Align.CENTER);
 
@@ -48,9 +70,9 @@ public class ClockView extends View {
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
+    protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
-        
+
         int width = getWidth();
         int height = getHeight();
         float radius = Math.min(width, height) / 3f;
@@ -59,24 +81,20 @@ public class ClockView extends View {
 
         rectF.set(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
 
-        // Rita ut cirkeln runt klockan. 
+        // Draw background circle
         canvas.drawCircle(centerX, centerY, radius, circlePaint);
 
-        // Ritar ut en blå progress linje
-        // Start from top (-90 degrees)
+        // Draw progress arc
         canvas.drawArc(rectF, -90, progressAngle, false, progressPaint);
 
-        // Här hanteras rotationen.
-        // Vi tar bort den extra -90 offseten eller justerar den för att se om det pekar rätt.
-        // Prova att bara använda -rotationDegrees först.
         canvas.save();
         canvas.rotate(-rotationDegrees, centerX, centerY);
-        
-        // Rita tidstexten
+
+        // Draw time text
         String timeText = formatTime(seconds);
         float textOffset = (textPaint.descent() + textPaint.ascent()) / 2;
         canvas.drawText(timeText, centerX, centerY - textOffset, textPaint);
-        
+
         canvas.restore();
     }
 
