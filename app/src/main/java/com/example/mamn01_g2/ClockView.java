@@ -35,10 +35,7 @@ public class ClockView extends View {
         float strokeW = 15f;
 
         if (attrs != null) {
-            android.content.res.TypedArray a = context.getTheme().obtainStyledAttributes(
-                    attrs,
-                    R.styleable.ClockView,
-                    0, 0);
+            android.content.res.TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.ClockView, 0, 0);
 
             try {
                 bgColor = a.getColor(R.styleable.ClockView_clockBackgroundColor, bgColor);
@@ -67,6 +64,11 @@ public class ClockView extends View {
         textPaint.setTextAlign(Paint.Align.CENTER);
 
         rectF = new RectF();
+
+        if (!isInEditMode()) {
+            android.graphics.Typeface customFont = androidx.core.content.res.ResourcesCompat.getFont(context, R.font.rubik_mono);
+            textPaint.setTypeface(customFont);
+        }
     }
 
     @Override
