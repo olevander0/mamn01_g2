@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ClockView">
+        <attr name="clockBackgroundColor" format="color" />
+        <attr name="clockProgressColor" format="color" />
+        <attr name="clockTextColor" format="color" />
+        <attr name="clockStrokeWidth" format="dimension" />
+    </declare-styleable>
+</resources>
