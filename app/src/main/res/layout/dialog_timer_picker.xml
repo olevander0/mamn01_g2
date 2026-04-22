@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_timer_picker_dialog"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/timerPickerColumns"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="6dp"
+                android:text="Min"
+                android:textColor="@android:color/black"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <NumberPicker
+                android:id="@+id/minutePicker"
+                android:layout_width="104dp"
+                android:layout_height="152dp"
+                android:background="@drawable/bg_timer_picker_picker"
+                android:theme="@android:style/Theme.DeviceDefault.Light" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="6dp"
+                android:text="Sek"
+                android:textColor="@android:color/black"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <NumberPicker
+                android:id="@+id/secondPicker"
+                android:layout_width="104dp"
+                android:layout_height="152dp"
+                android:background="@drawable/bg_timer_picker_picker"
+                android:theme="@android:style/Theme.DeviceDefault.Light" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/timerPickerActions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="16dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/cancelTimerPickerButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_time_picker_button_outline"
+            android:padding="12dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_timer_close"
+            android:tint="@android:color/black" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/applyTimerPickerButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_time_picker_button"
+            android:padding="12dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_timer_check"
+            android:tint="@android:color/white" />
+    </LinearLayout>
+
+</LinearLayout>
