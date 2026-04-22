@@ -37,6 +37,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private long lastShakeTime;
     private static final float SHAKE_THRESHOLD = 12.0f;
 
+    private static final int ADDED_TIME = 30*60;
+    private boolean timerFinished = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,9 +117,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             lastZ = event.values[2];
             handleAccelerometer(event.values);
         } else if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
-            isNear = event.values[0] < proximitySensor.getMaximumRange();
+            boolean currentIsNear = event.values[0] < proximitySensor.getMaximumRange();
+
+            //checks if it was near but not near anymore while still upside down
+            if(isNear && !currentIsNear && lastZ < -5.0f){
+                handleLiftGesture();
+
+            }
+            isNear = currentIsNear;
             checkAndStartTimer(lastZ);
+
         }
+
     }
 
     private void handleRotation(float[] rotationVector) {
@@ -196,9 +208,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void startCountdown() {
         isTimerRunning = true;
+        timerFinished = false;
+        updateDisplayedTime(seconds);
         Toast.makeText(this, "Timer startad!", Toast.LENGTH_SHORT).show();
 
-        countDownTimer = new CountDownTimer(seconds * 1000, 1000) {
+        countDownTimer = new CountDownTimer(seconds * 1000L, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 seconds = (int) (millisUntilFinished / 1000);
@@ -208,8 +222,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onFinish() {
                 isTimerRunning = false;
+                timerFinished = true;
                 seconds = 0;
-                totalRotation = 0; 
+                totalRotation = 0;
                 countDownTimer = null;
                 updateDisplayedTime(0);
                 if (timePicker != null) {
@@ -230,6 +245,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             countDownTimer = null;
         }
         isTimerRunning = false;
+        timerFinished = false;
         seconds = 0;
         totalRotation = 0;
         updateDisplayedTime(0);
@@ -239,6 +255,25 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Toast.makeText(this, "Timer återställd", Toast.LENGTH_SHORT).show();
     }
 
+    private void handleLiftGesture() {
+        if (isTimerRunning) {
+            if (countDownTimer != null) {
+                countDownTimer.cancel();
+                countDownTimer = null;
+            }
+            seconds += ADDED_TIME;
+        } else if (timerFinished) {
+            seconds = ADDED_TIME;
+        } else {
+            return;
+        }
+
+        totalRotation = seconds * 10f;
+        updateDisplayedTime(seconds);
+        startCountdown();
+        Toast.makeText(this, "Tiden ökat med " + ADDED_TIME + " sekunder", Toast.LENGTH_SHORT).show();
+    }
+
     private void setManualTime(int selectedSeconds) {
         if (countDownTimer != null) {
             countDownTimer.cancel();
@@ -246,6 +281,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         isTimerRunning = false;
+        timerFinished = false;
         seconds = Math.max(0, selectedSeconds);
         totalRotation = seconds * 10f;
         updateDisplayedTime(seconds);
