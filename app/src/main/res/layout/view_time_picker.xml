@@ -6,7 +6,7 @@
         android:id="@+id/openTimerPickerButton"
         android:layout_width="36dp"
         android:layout_height="36dp"
-        android:background="@android:color/transparent"
+        android:background="@color/transparent"
         android:contentDescription="Edit timer"
         android:padding="6dp"
         android:scaleType="centerInside"

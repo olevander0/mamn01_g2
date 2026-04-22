@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@color/background_color"
     tools:context=".MainActivity">
 
     <FrameLayout
@@ -20,7 +20,11 @@
         <com.example.mamn01_g2.ClockView
             android:id="@+id/clockView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            app:clockBackgroundColor="@color/orange"
+            app:clockProgressColor="@color/progress_color"
+            app:clockStrokeWidth="15dp"
+            app:clockTextColor="@color/text_color" />
 
         <com.example.mamn01_g2.TimePicker
             android:id="@+id/timePicker"
@@ -34,8 +38,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
+        android:fontFamily="@font/rubik"
         android:text="Spin phone or tap to set time&#10;Shake to reset"
         android:textAlignment="center"
+        android:textColor="@color/text_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/clockContainer" />

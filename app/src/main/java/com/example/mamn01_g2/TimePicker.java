@@ -1,6 +1,5 @@
 package com.example.mamn01_g2;
 
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.CountDownTimer;
@@ -16,6 +15,7 @@ import android.widget.PopupWindow;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 
 import java.util.Locale;
@@ -111,7 +111,9 @@ public class TimePicker extends ConstraintLayout {
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 true
         );
-        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popupWindow.setBackgroundDrawable(
+                new ColorDrawable(ContextCompat.getColor(getContext(), R.color.transparent))
+        );
         popupWindow.setOutsideTouchable(true);
         popupWindow.setElevation(dpToPx(8));
         popupWindow.setOnDismissListener(() -> {
@@ -195,8 +197,10 @@ public class TimePicker extends ConstraintLayout {
     }
 
     private void stylePicker(NumberPicker picker) {
+        int pickerTextColor = ContextCompat.getColor(getContext(), R.color.text_color);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            picker.setTextColor(Color.BLACK);
+            picker.setTextColor(pickerTextColor);
             picker.setTextSize(spToPx(16));
         }
 
@@ -204,7 +208,7 @@ public class TimePicker extends ConstraintLayout {
             View child = picker.getChildAt(i);
             if (child instanceof EditText) {
                 EditText editText = (EditText) child;
-                editText.setTextColor(Color.BLACK);
+                editText.setTextColor(pickerTextColor);
                 editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             }
         }
