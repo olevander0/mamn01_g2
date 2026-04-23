@@ -1,8 +1,8 @@
 package com.example.mamn01_g2;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
@@ -10,6 +10,8 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 
 import java.util.Locale;
 
@@ -29,13 +31,13 @@ public class ClockView extends View {
     }
 
     private void init(Context context, AttributeSet attrs) {
-        int bgColor = Color.LTGRAY;
-        int progColor = Color.BLUE;
-        int txtColor = Color.BLACK;
+        int bgColor = ContextCompat.getColor(context, R.color.orange);
+        int progColor = ContextCompat.getColor(context, R.color.progress_color);
+        int txtColor = ContextCompat.getColor(context, R.color.text_color);
         float strokeW = 15f;
 
         if (attrs != null) {
-            android.content.res.TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.ClockView, 0, 0);
+            TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.ClockView, 0, 0);
 
             try {
                 bgColor = a.getColor(R.styleable.ClockView_clockBackgroundColor, bgColor);
@@ -66,7 +68,7 @@ public class ClockView extends View {
         rectF = new RectF();
 
         if (!isInEditMode()) {
-            android.graphics.Typeface customFont = androidx.core.content.res.ResourcesCompat.getFont(context, R.font.rubik_mono);
+            android.graphics.Typeface customFont = ResourcesCompat.getFont(context, R.font.rubik_mono);
             textPaint.setTypeface(customFont);
         }
     }

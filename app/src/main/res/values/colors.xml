@@ -10,4 +10,5 @@
     <color name="background_color">#FFF6E3</color>
     <color name="text_color">#481D24</color>
     <color name="progress_color">#C5283D</color>
+    <color name="transparent">#00000000</color>
 </resources>

@@ -1,9 +1,15 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Mamn01_g2" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
-    </style>
+<resources>
+    <style name="Base.Theme.Mamn01_g2" parent="Theme.Material3.Light.NoActionBar" />
 
     <style name="Theme.Mamn01_g2" parent="Base.Theme.Mamn01_g2" />
+
+    <style name="ThemeOverlay.Mamn01_g2.TimerPicker" parent="Theme.Material3.Light">
+        <item name="android:colorBackground">@color/background_color</item>
+        <item name="android:windowBackground">@color/background_color</item>
+        <item name="android:textColor">@color/text_color</item>
+        <item name="android:textColorPrimary">@color/text_color</item>
+        <item name="android:textColorSecondary">@color/text_color</item>
+        <item name="android:editTextColor">@color/text_color</item>
+        <item name="android:colorAccent">@color/progress_color</item>
+    </style>
 </resources>

@@ -8,18 +8,30 @@
     android:background="@color/background_color"
     tools:context=".MainActivity">
 
-    <com.example.mamn01_g2.ClockView
-        android:id="@+id/clockView"
+    <FrameLayout
+        android:id="@+id/clockContainer"
         android:layout_width="300dp"
         android:layout_height="300dp"
-        app:clockBackgroundColor="@color/orange"
-        app:clockProgressColor="@color/progress_color"
-        app:clockStrokeWidth="15dp"
-        app:clockTextColor="@color/text_color"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.example.mamn01_g2.ClockView
+            android:id="@+id/clockView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:clockBackgroundColor="@color/orange"
+            app:clockProgressColor="@color/progress_color"
+            app:clockStrokeWidth="15dp"
+            app:clockTextColor="@color/text_color" />
+
+        <com.example.mamn01_g2.TimePicker
+            android:id="@+id/timePicker"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
 
     <TextView
         android:id="@+id/instructions"
@@ -27,10 +39,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:fontFamily="@font/rubik"
-        android:text="Spin phone to set time\nShake to reset"
+        android:text="Spin phone or tap to set time&#10;Shake to reset"
         android:textAlignment="center"
+        android:textColor="@color/text_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/clockView" />
+        app:layout_constraintTop_toBottomOf="@+id/clockContainer" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
