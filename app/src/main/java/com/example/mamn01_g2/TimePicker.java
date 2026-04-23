@@ -2,7 +2,6 @@ package com.example.mamn01_g2;
 
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
-import android.os.CountDownTimer;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -30,8 +29,6 @@ public class TimePicker extends ConstraintLayout {
     private int selectedSeconds = 0;
 
     @Nullable
-    private CountDownTimer countDownTimer;
-    @Nullable
     private PopupWindow popupWindow;
 
     @Nullable
@@ -57,10 +54,6 @@ public class TimePicker extends ConstraintLayout {
         openPickerButton = findViewById(R.id.openTimerPickerButton);
         openPickerButton.setOnClickListener(v -> showPickerPopup());
         updateButtonLabel();
-    }
-
-    public void setCountDownTimer(@Nullable CountDownTimer countDownTimer) {
-        this.countDownTimer = countDownTimer;
     }
 
     public void setSelectedSeconds(int seconds) {
@@ -138,11 +131,6 @@ public class TimePicker extends ConstraintLayout {
         applyButton.setOnClickListener(v -> {
             wasApplied[0] = true;
             int newSeconds = minutePicker.getValue() * 60 + secondPicker.getValue();
-
-            if (countDownTimer != null) {
-                countDownTimer.cancel();
-                countDownTimer = null;
-            }
 
             setSelectedSeconds(newSeconds);
 
