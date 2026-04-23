@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor accelerometer;
     private Sensor proximitySensor;
     private ClockView clockView;
+    private TimePicker timePicker;
     
     private float smoothedAzimuth = 0;
     private float lastAzimuth = 0;
@@ -51,7 +52,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 
         clockView = findViewById(R.id.clockView);
+        timePicker = findViewById(R.id.timePicker);
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+        if (timePicker != null) {
+            timePicker.setSelectedSeconds(seconds);
+            timePicker.setOnTimeSelectedListener(new TimePicker.OnTimeSelectedListener() {
+                @Override
+                public void onTimePreviewChanged(int selectedSeconds) {
+                    setManualTime(selectedSeconds);
+                }
+
+                @Override
+                public void onTimeSelected(int selectedSeconds) {
+                    setManualTime(selectedSeconds);
+                }
+
+                @Override
+                public void onTimeSelectionCancelled(int restoredSeconds) {
+                    setManualTime(restoredSeconds);
+                }
+            });
+        }
 
         if (sensorManager != null) {
             rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
@@ -78,6 +100,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         if (countDownTimer != null) {
             countDownTimer.cancel();
+            countDownTimer = null;
+        }
+        isTimerRunning = false;
+        totalRotation = seconds * 10f;
+        if (timePicker != null) {
+            timePicker.setCountDownTimer(null);
         }
     }
 
@@ -143,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             int newSeconds = (int) (totalRotation / 10);
             if (newSeconds != seconds) {
                 seconds = newSeconds;
-                if (clockView != null) clockView.setTime(seconds);
+                updateDisplayedTime(seconds);
             }
         }
 
@@ -181,15 +209,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void startCountdown() {
         isTimerRunning = true;
         timerFinished = false;
+        updateDisplayedTime(seconds);
         Toast.makeText(this, "Timer startad!", Toast.LENGTH_SHORT).show();
 
-        countDownTimer = new CountDownTimer(seconds * 1000, 1000) {
+        countDownTimer = new CountDownTimer(seconds * 1000L, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 seconds = (int) (millisUntilFinished / 1000);
-                if (clockView != null) {
-                    clockView.setTime(seconds);
-                }
+                updateDisplayedTime(seconds);
             }
 
             @Override
@@ -197,41 +224,79 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 isTimerRunning = false;
                 timerFinished = true;
                 seconds = 0;
-                totalRotation = 0; 
-                if (clockView != null) {
-                    clockView.setTime(0);
+                totalRotation = 0;
+                countDownTimer = null;
+                updateDisplayedTime(0);
+                if (timePicker != null) {
+                    timePicker.setCountDownTimer(null);
                 }
                 Toast.makeText(MainActivity.this, "Tiden är ute!", Toast.LENGTH_LONG).show();
             }
         }.start();
+
+        if (timePicker != null) {
+            timePicker.setCountDownTimer(countDownTimer);
+        }
     }
 
     private void resetTimer() {
         if (countDownTimer != null) {
             countDownTimer.cancel();
+            countDownTimer = null;
         }
         isTimerRunning = false;
         timerFinished = false;
         seconds = 0;
         totalRotation = 0;
-        if (clockView != null) {
-            clockView.setTime(0);
+        updateDisplayedTime(0);
+        if (timePicker != null) {
+            timePicker.setCountDownTimer(null);
         }
         Toast.makeText(this, "Timer återställd", Toast.LENGTH_SHORT).show();
     }
+
     private void handleLiftGesture() {
-        if (isTimerRunning){
-            if(countDownTimer != null) {
+        if (isTimerRunning) {
+            if (countDownTimer != null) {
                 countDownTimer.cancel();
+                countDownTimer = null;
             }
             seconds += ADDED_TIME;
-            startCountdown();
-            Toast.makeText(this, "Tiden ökat med " + ADDED_TIME + " sekunder", Toast.LENGTH_SHORT).show();
         } else if (timerFinished) {
             seconds = ADDED_TIME;
-            startCountdown();
-            Toast.makeText(this, "Tiden ökat med " + ADDED_TIME + " sekunder", Toast.LENGTH_SHORT).show();
-            
+        } else {
+            return;
+        }
+
+        totalRotation = seconds * 10f;
+        updateDisplayedTime(seconds);
+        startCountdown();
+        Toast.makeText(this, "Tiden ökat med " + ADDED_TIME + " sekunder", Toast.LENGTH_SHORT).show();
+    }
+
+    private void setManualTime(int selectedSeconds) {
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+            countDownTimer = null;
+        }
+
+        isTimerRunning = false;
+        timerFinished = false;
+        seconds = Math.max(0, selectedSeconds);
+        totalRotation = seconds * 10f;
+        updateDisplayedTime(seconds);
+
+        if (timePicker != null) {
+            timePicker.setCountDownTimer(null);
+        }
+    }
+
+    private void updateDisplayedTime(int secondsToDisplay) {
+        if (clockView != null) {
+            clockView.setTime(secondsToDisplay);
+        }
+        if (timePicker != null) {
+            timePicker.setSelectedSeconds(secondsToDisplay);
         }
     }
 
