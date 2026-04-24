@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         clockView = findViewById(R.id.clock_view);
         viewModel = new ViewModelProvider(this).get(TimerViewModel.class);
 
-        TimePicker timePicker = findViewById(R.id.time_picker); // Make sure the ID matches your layout!
+        timePicker = findViewById(R.id.time_picker);
 
         timePicker.setOnTimeSelectedListener(new TimePicker.OnTimeSelectedListener() {
             @Override

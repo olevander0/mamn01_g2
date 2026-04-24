@@ -11,10 +11,8 @@ import com.example.mamn01_g2.sensor.SensorController;
 import com.example.mamn01_g2.timer.TimerController;
 
 public class TimerViewModel extends AndroidViewModel implements GestureListener {
-
     private final SensorController sensorController;
     private final TimerController timerController;
-
     private final MutableLiveData<Long> currentTimeLiveData = new MutableLiveData<>(0L);
 
     public TimerViewModel(Application application) {
