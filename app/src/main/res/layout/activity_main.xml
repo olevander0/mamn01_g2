@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_color"
-    tools:context=".MainActivity">
+    tools:context=".ui.MainActivity">
 
     <FrameLayout
         android:id="@+id/clockContainer"
@@ -17,8 +17,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.example.mamn01_g2.ClockView
-            android:id="@+id/clockView"
+        <com.example.mamn01_g2.ui.ClockView
+            android:id="@+id/clock_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:clockBackgroundColor="@color/orange"
@@ -26,8 +26,8 @@
             app:clockStrokeWidth="15dp"
             app:clockTextColor="@color/text_color" />
 
-        <com.example.mamn01_g2.TimePicker
-            android:id="@+id/timePicker"
+        <com.example.mamn01_g2.ui.TimePicker
+            android:id="@+id/time_picker"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 

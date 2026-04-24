@@ -1,4 +1,4 @@
-package com.example.mamn01_g2;
+package com.example.mamn01_g2.ui;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -13,6 +13,8 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.example.mamn01_g2.R;
+
 import java.util.Locale;
 
 public class ClockView extends View {
@@ -24,6 +26,7 @@ public class ClockView extends View {
     private float rotationDegrees = 0;
     private int seconds = 0;
     private float progressAngle = 0;
+    private long totalInitialTimeInMillis = 0;
 
     public ClockView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -73,6 +76,42 @@ public class ClockView extends View {
         }
     }
 
+    /**
+     * Call this when setting a brand new time (e.g., when dialing the phone).
+     * This establishes the "100% full" mark for the progress arc.
+     */
+    public void setInitialTime(long millis) {
+        this.totalInitialTimeInMillis = millis;
+        updateTimeDisplay(millis);
+    }
+
+    /**
+     * Call this every second while the timer is running down.
+     */
+    public void updateTime(long millisRemaining) {
+        updateTimeDisplay(millisRemaining);
+    }
+
+    // A private helper method to handle the math and redrawing
+    private void updateTimeDisplay(long millis) {
+        // 1. Convert millis back to total seconds for the text display
+        this.seconds = (int) (millis / 1000);
+
+        // 2. Calculate the progress arc angle (360 degrees = full)
+        if (totalInitialTimeInMillis > 0) {
+            // Calculate what percentage of time is left
+            float percentageRemaining = (float) millis / totalInitialTimeInMillis;
+
+            // Convert that percentage into degrees (e.g., 50% = 180 degrees)
+            this.progressAngle = percentageRemaining * 360f;
+        } else {
+            this.progressAngle = 0f;
+        }
+
+        // Force the view to redraw itself with the new values!
+        invalidate();
+    }
+
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
@@ -118,4 +157,6 @@ public class ClockView extends View {
         this.progressAngle = (this.seconds % 60) * 6f;
         invalidate();
     }
+
+
 }

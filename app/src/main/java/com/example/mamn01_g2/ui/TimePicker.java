@@ -1,4 +1,4 @@
-package com.example.mamn01_g2;
+package com.example.mamn01_g2.ui;
 
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
@@ -16,6 +16,8 @@ import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
+
+import com.example.mamn01_g2.R;
 
 import java.util.Locale;
 
@@ -93,20 +95,10 @@ public class TimePicker extends ConstraintLayout {
         minutePicker.setOnValueChangedListener(previewListener);
         secondPicker.setOnValueChangedListener(previewListener);
 
-        dialogView.measure(
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-        );
+        dialogView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
-        popupWindow = new PopupWindow(
-                dialogView,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                true
-        );
-        popupWindow.setBackgroundDrawable(
-                new ColorDrawable(ContextCompat.getColor(getContext(), R.color.transparent))
-        );
+        popupWindow = new PopupWindow(dialogView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        popupWindow.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), R.color.transparent)));
         popupWindow.setOutsideTouchable(true);
         popupWindow.setElevation(dpToPx(8));
         popupWindow.setOnDismissListener(() -> {
@@ -128,10 +120,12 @@ public class TimePicker extends ConstraintLayout {
                 popupWindow.dismiss();
             }
         });
+
         applyButton.setOnClickListener(v -> {
             wasApplied[0] = true;
             int newSeconds = minutePicker.getValue() * 60 + secondPicker.getValue();
 
+            // Removed the old CountDownTimer cancellation logic from here!
             setSelectedSeconds(newSeconds);
 
             if (onTimeSelectedListener != null) {
@@ -164,20 +158,13 @@ public class TimePicker extends ConstraintLayout {
             return;
         }
 
-        String description = selectedSeconds > 0
-                ? String.format(Locale.getDefault(), EDIT_TIMER_WITH_VALUE_DESCRIPTION, formatDuration(selectedSeconds))
-                : EDIT_TIMER_DESCRIPTION;
+        String description = selectedSeconds > 0 ? String.format(Locale.getDefault(), EDIT_TIMER_WITH_VALUE_DESCRIPTION, formatDuration(selectedSeconds)) : EDIT_TIMER_DESCRIPTION;
         openPickerButton.setContentDescription(description);
         ViewCompat.setTooltipText(openPickerButton, description);
     }
 
     private String formatDuration(int totalSeconds) {
-        return String.format(
-                Locale.getDefault(),
-                "%02d:%02d",
-                totalSeconds / 60,
-                totalSeconds % 60
-        );
+        return String.format(Locale.getDefault(), "%02d:%02d", totalSeconds / 60, totalSeconds % 60);
     }
 
     private int dpToPx(int dp) {
@@ -203,16 +190,14 @@ public class TimePicker extends ConstraintLayout {
     }
 
     private float spToPx(int sp) {
-        return TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_SP,
-                sp,
-                getResources().getDisplayMetrics()
-        );
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, getResources().getDisplayMetrics());
     }
 
     public interface OnTimeSelectedListener {
         void onTimePreviewChanged(int selectedSeconds);
+
         void onTimeSelected(int selectedSeconds);
+
         void onTimeSelectionCancelled(int restoredSeconds);
     }
 }
