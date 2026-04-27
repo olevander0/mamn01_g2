@@ -85,16 +85,18 @@ public class ClockView extends View {
 
         rectF.set(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
 
-        // Draw background circle
+        // Vi lägger till 180 grader i rotationen så att klockan börjar rättvänd
+        // men behåller kompensations-rotationen (-rotationDegrees) så att den rör sig smidigt.
+        canvas.save();
+        canvas.rotate(-rotationDegrees + 180, centerX, centerY);
+
+        // Rita bakgrundscirkeln
         canvas.drawCircle(centerX, centerY, radius, circlePaint);
 
-        // Draw progress arc
+        // Rita progress-bågen (följer med klockans rotation)
         canvas.drawArc(rectF, -90, progressAngle, false, progressPaint);
 
-        canvas.save();
-        canvas.rotate(-rotationDegrees, centerX, centerY);
-
-        // Draw time text
+        // Rita tidstexten (följer med klockans rotation för en fysisk känsla)
         String timeText = formatTime(seconds);
         float textOffset = (textPaint.descent() + textPaint.ascent()) / 2;
         canvas.drawText(timeText, centerX, centerY - textOffset, textPaint);
