@@ -6,7 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_color"
-    tools:context=".MainActivity">
+    android:keepScreenOn="true"
+    tools:context=".ui.MainActivity">
 
     <FrameLayout
         android:id="@+id/clockContainer"
@@ -17,8 +18,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.example.mamn01_g2.ClockView
-            android:id="@+id/clockView"
+        <com.example.mamn01_g2.ui.ClockView
+            android:id="@+id/clock_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:clockBackgroundColor="@color/orange"
@@ -26,8 +27,8 @@
             app:clockStrokeWidth="15dp"
             app:clockTextColor="@color/text_color" />
 
-        <com.example.mamn01_g2.TimePicker
-            android:id="@+id/timePicker"
+        <com.example.mamn01_g2.ui.TimePicker
+            android:id="@+id/time_picker"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
@@ -47,11 +48,12 @@
         app:layout_constraintTop_toBottomOf="@+id/clockContainer" />
 
     <Button
-        android:id="@+id/startButton"
+        android:id="@+id/setButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="Start"
+        android:fontFamily="@font/rubik"
+        android:text="@string/set_time"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/instructions" />

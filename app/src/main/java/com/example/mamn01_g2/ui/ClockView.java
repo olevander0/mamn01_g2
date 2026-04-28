@@ -1,4 +1,4 @@
-package com.example.mamn01_g2;
+package com.example.mamn01_g2.ui;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -13,6 +13,8 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.example.mamn01_g2.R;
+
 import java.util.Locale;
 
 public class ClockView extends View {
@@ -24,6 +26,7 @@ public class ClockView extends View {
     private float rotationDegrees = 0;
     private int seconds = 0;
     private float progressAngle = 0;
+    private long totalInitialTimeInMillis = 0;
 
     public ClockView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -73,6 +76,43 @@ public class ClockView extends View {
         }
     }
 
+    /**
+     * Call this when setting a brand new time (e.g., when dialing the phone).
+     * This establishes the "100% full" mark for the countdown, BUT draws the
+     * progress relative to a 60-minute dial so you can see it grow!
+     */
+    public void setInitialTime(long millis) {
+        this.totalInitialTimeInMillis = millis;
+        this.seconds = (int) (millis / 1000);
+
+        // 60 minutes = 360 degrees.
+        float minutes = millis / 60000f;
+        this.progressAngle = (minutes / 60f) * 360f;
+
+        if (this.progressAngle > 360f) {
+            this.progressAngle = 360f;
+        }
+
+        invalidate(); // Tell Android to redraw!
+    }
+
+    /**
+     * Call this every second while the timer is running down.
+     */
+    public void updateTime(long millisRemaining) {
+        this.seconds = (int) (millisRemaining / 1000);
+
+        // When running, we shrink the circle from 100% down to 0% based on the initial time!
+        if (totalInitialTimeInMillis > 0) {
+            float percentageRemaining = (float) millisRemaining / totalInitialTimeInMillis;
+            this.progressAngle = percentageRemaining * 360f;
+        } else {
+            this.progressAngle = 0f;
+        }
+
+        invalidate(); // Tell Android to redraw!
+    }
+
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
@@ -85,18 +125,13 @@ public class ClockView extends View {
 
         rectF.set(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
 
-        // Vi lägger till 180 grader i rotationen så att klockan börjar rättvänd
-        // men behåller kompensations-rotationen (-rotationDegrees) så att den rör sig smidigt.
-        canvas.save();
-        canvas.rotate(-rotationDegrees + 180, centerX, centerY);
-
-        // Rita bakgrundscirkeln
         canvas.drawCircle(centerX, centerY, radius, circlePaint);
 
-        // Rita progress-bågen (följer med klockans rotation)
         canvas.drawArc(rectF, -90, progressAngle, false, progressPaint);
 
-        // Rita tidstexten (följer med klockans rotation för en fysisk känsla)
+        canvas.save();
+        canvas.rotate(-rotationDegrees, centerX, centerY);
+
         String timeText = formatTime(seconds);
         float textOffset = (textPaint.descent() + textPaint.ascent()) / 2;
         canvas.drawText(timeText, centerX, centerY - textOffset, textPaint);
@@ -120,4 +155,6 @@ public class ClockView extends View {
         this.progressAngle = (this.seconds % 60) * 6f;
         invalidate();
     }
+
+
 }
