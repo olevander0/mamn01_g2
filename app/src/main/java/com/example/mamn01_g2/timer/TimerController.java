@@ -1,6 +1,7 @@
 package com.example.mamn01_g2.timer;
 
 import android.content.Context;
+import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -14,6 +15,7 @@ public class TimerController {
 
     private final Vibrator vibrator;
     private final Ringtone alarmSound;
+    private final AudioManager audioManager;
     private CountDownTimer countDownTimer;
     private boolean isRunning = false;
     private long timeRemainingInMillis = 0L;
@@ -31,6 +33,8 @@ public class TimerController {
             alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         }
         alarmSound = RingtoneManager.getRingtone(context, alarmUri);
+
+        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
 
     /**
@@ -91,11 +95,13 @@ public class TimerController {
 
     public void playShortHaptic() {
         if (vibrator != null && vibrator.hasVibrator()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK));
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(15, 50));
             } else {
-                // Deprecated in API 26, but needed to support older devices
-                vibrator.vibrate(100);
+                vibrator.vibrate(15);
             }
         }
     }
@@ -123,6 +129,14 @@ public class TimerController {
         }
         if (vibrator != null) {
             vibrator.cancel();
+        }
+    }
+
+    public void playTickFeedback() {
+        playShortHaptic();
+
+        if (audioManager != null) {
+            audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK, 1.0f);
         }
     }
 

@@ -38,6 +38,8 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         if (!timerController.isRunning()) {
             currentTimeLiveData.setValue(timeInMillis);
             isTimeLocked = false;
+
+            timerController.playTickFeedback();
         }
     }
 
@@ -63,11 +65,13 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
 
     @Override
     public void onTimeRotate(int minutesToChange) {
+        // Stop if locked or running!
         if (isTimeLocked || isTimerRunning()) {
             return;
         }
 
         long millisToChange = minutesToChange * 60000L;
+
         Long currentTime = currentTimeLiveData.getValue();
         if (currentTime == null) currentTime = 0L;
 
@@ -77,7 +81,12 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
             newTime = 0;
         }
 
-        currentTimeLiveData.setValue(newTime);
+        // Only play tick if the time actually changed!
+        if (newTime != currentTime) {
+            currentTimeLiveData.setValue(newTime);
+
+            timerController.playTickFeedback();
+        }
     }
 
     @Override
