@@ -49,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
 
             timePicker.setSelectedSeconds((int) (timeInMillis / 1000));
         });
+
+        findViewById(R.id.setButton).setOnClickListener(v -> viewModel.lockTime());
     }
 
     @Override

@@ -14,6 +14,7 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
     private final SensorController sensorController;
     private final TimerController timerController;
     private final MutableLiveData<Long> currentTimeLiveData = new MutableLiveData<>(0L);
+    private boolean isTimeLocked = false;
 
     public TimerViewModel(Application application) {
         super(application);
@@ -36,6 +37,7 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
     public void manuallySetTime(long timeInMillis) {
         if (!timerController.isRunning()) {
             currentTimeLiveData.setValue(timeInMillis);
+            isTimeLocked = false;
         }
     }
 
@@ -45,6 +47,10 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
 
     public void stopSensors() {
         sensorController.stopListening();
+    }
+
+    public void lockTime() {
+        isTimeLocked = true;
     }
 
     @Override
@@ -57,8 +63,11 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
 
     @Override
     public void onTimeRotate(int minutesToChange) {
-        long millisToChange = minutesToChange * 60000L;
+        if (isTimeLocked || isTimerRunning()) {
+            return;
+        }
 
+        long millisToChange = minutesToChange * 60000L;
         Long currentTime = currentTimeLiveData.getValue();
         if (currentTime == null) currentTime = 0L;
 
@@ -76,19 +85,17 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         Long currentSetTime = currentTimeLiveData.getValue();
 
         if (currentSetTime != null && currentSetTime > 0 && !timerController.isRunning()) {
-
-            timerController.startTimer(currentSetTime,
-                    // onTick callback: update the LiveData every second
-                    currentTimeLiveData::postValue,
-                    // onFinish callback: time's up!
-                    () -> currentTimeLiveData.postValue(0L));
+            timerController.startTimer(currentSetTime, currentTimeLiveData::postValue, () -> {
+                currentTimeLiveData.postValue(0L);
+                isTimeLocked = false;
+            });
         }
     }
 
     @Override
     public void onPhoneFlippedUp() {
-        // Pause/Stop the timer when flipped face up
         timerController.stopTimer();
+        isTimeLocked = false;
     }
 
     @Override
@@ -111,4 +118,16 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
 
         timerController.playShortHaptic();
     }
+
+    @Override
+    public void onPhoneShaken() {
+        if (timerController.isRunning()) {
+            timerController.stopTimer();
+        }
+
+        currentTimeLiveData.setValue(0L);
+
+        isTimeLocked = false;
+    }
+
 }
