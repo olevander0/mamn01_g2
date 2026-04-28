@@ -3,6 +3,7 @@ package com.example.mamn01_g2.sensor;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 
 /**
  * Listens to the Accelerometer to detect when the user flips the phone
@@ -10,17 +11,15 @@ import android.hardware.SensorEventListener;
  */
 public class MovementDetector implements SensorEventListener {
 
-    // Thresholds for Earth's gravity (approx 9.8 m/s^2)
     private static final float FACE_DOWN_THRESHOLD = -7.5f;
     private static final float FACE_UP_THRESHOLD = 7.5f;
-    // Threshold for sudden upward acceleration while face down
     private static final float LIFT_THRESHOLD = -11.5f;
-    private static final long LIFT_COOLDOWN_MS = 1500; // 1.5 seconds
+    private static final long LIFT_COOLDOWN_MS = 1500;
+    private static final float SHAKE_THRESHOLD = 12.0f;
     private final GestureListener listener;
-    // State tracker so we don't spam the listener
     private boolean isFaceDown = false;
-    // Cooldown timer to prevent a single lift from triggering multiple times
     private long lastLiftTime = 0;
+    private long lastShakeTime = 0;
 
     public MovementDetector(GestureListener listener) {
         this.listener = listener;
@@ -28,37 +27,41 @@ public class MovementDetector implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        // Ensure we are only reading the accelerometer
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
-            float zValue = event.values[2]; // Index 2 is the Z-axis
+            float xValue = event.values[0];
+            float yValue = event.values[1];
+            float zValue = event.values[2];
 
-            // 1. Check for Flip (Face Up vs Face Down)
-            if (zValue < FACE_DOWN_THRESHOLD && !isFaceDown) {
-                isFaceDown = true;
-                if (listener != null) {
-                    listener.onPhoneFlippedDown(); // Trigger timer start!
-                }
-            } else if (zValue > FACE_UP_THRESHOLD && isFaceDown) {
-                isFaceDown = false;
-                if (listener != null) {
-                    listener.onPhoneFlippedUp(); // Trigger timer pause/stop!
+            // SHAKE DETECTION
+            float acceleration = (float) Math.sqrt(xValue * xValue + yValue * yValue + zValue * zValue) - SensorManager.GRAVITY_EARTH;
+
+            if (acceleration > SHAKE_THRESHOLD) {
+                long currentTime = System.currentTimeMillis();
+                // Cooldown to prevent retriggering
+                if (currentTime - lastShakeTime > 500) {
+                    lastShakeTime = currentTime;
+                    if (listener != null) {
+                        listener.onPhoneShaken();
+                    }
                 }
             }
 
-            // 2. Check for Lift (Snooze / Add 5 minutes)
-            // If it is currently face down, and Z becomes significantly more negative,
-            // the user is lifting the phone off the table.
+            // FLIP DETECTION
+            if (zValue < FACE_DOWN_THRESHOLD && !isFaceDown) {
+                isFaceDown = true;
+                if (listener != null) listener.onPhoneFlippedDown();
+            } else if (zValue > FACE_UP_THRESHOLD && isFaceDown) {
+                isFaceDown = false;
+                if (listener != null) listener.onPhoneFlippedUp();
+            }
+
+            // LIFT DETECTION
             if (isFaceDown && zValue < LIFT_THRESHOLD) {
                 long currentTime = System.currentTimeMillis();
-
-                // Only trigger if the cooldown has passed
                 if (currentTime - lastLiftTime > LIFT_COOLDOWN_MS) {
                     lastLiftTime = currentTime;
-
-                    if (listener != null) {
-                        listener.onPhoneLiftedFaceDown(); // Trigger add 5 minutes!
-                    }
+                    if (listener != null) listener.onPhoneLiftedFaceDown();
                 }
             }
         }
@@ -66,6 +69,5 @@ public class MovementDetector implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // Not needed for this specific implementation
     }
 }
