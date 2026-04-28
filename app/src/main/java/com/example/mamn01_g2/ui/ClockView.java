@@ -78,38 +78,39 @@ public class ClockView extends View {
 
     /**
      * Call this when setting a brand new time (e.g., when dialing the phone).
-     * This establishes the "100% full" mark for the progress arc.
+     * This establishes the "100% full" mark for the countdown, BUT draws the
+     * progress relative to a 60-minute dial so you can see it grow!
      */
     public void setInitialTime(long millis) {
         this.totalInitialTimeInMillis = millis;
-        updateTimeDisplay(millis);
+        this.seconds = (int) (millis / 1000);
+
+        // 60 minutes = 360 degrees.
+        float minutes = millis / 60000f;
+        this.progressAngle = (minutes / 60f) * 360f;
+
+        if (this.progressAngle > 360f) {
+            this.progressAngle = 360f;
+        }
+
+        invalidate(); // Tell Android to redraw!
     }
 
     /**
      * Call this every second while the timer is running down.
      */
     public void updateTime(long millisRemaining) {
-        updateTimeDisplay(millisRemaining);
-    }
+        this.seconds = (int) (millisRemaining / 1000);
 
-    // A private helper method to handle the math and redrawing
-    private void updateTimeDisplay(long millis) {
-        // 1. Convert millis back to total seconds for the text display
-        this.seconds = (int) (millis / 1000);
-
-        // 2. Calculate the progress arc angle (360 degrees = full)
+        // When running, we shrink the circle from 100% down to 0% based on the initial time!
         if (totalInitialTimeInMillis > 0) {
-            // Calculate what percentage of time is left
-            float percentageRemaining = (float) millis / totalInitialTimeInMillis;
-
-            // Convert that percentage into degrees (e.g., 50% = 180 degrees)
+            float percentageRemaining = (float) millisRemaining / totalInitialTimeInMillis;
             this.progressAngle = percentageRemaining * 360f;
         } else {
             this.progressAngle = 0f;
         }
 
-        // Force the view to redraw itself with the new values!
-        invalidate();
+        invalidate(); // Tell Android to redraw!
     }
 
     @Override
@@ -124,16 +125,13 @@ public class ClockView extends View {
 
         rectF.set(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
 
-        // Draw background circle
         canvas.drawCircle(centerX, centerY, radius, circlePaint);
 
-        // Draw progress arc
         canvas.drawArc(rectF, -90, progressAngle, false, progressPaint);
 
         canvas.save();
         canvas.rotate(-rotationDegrees, centerX, centerY);
 
-        // Draw time text
         String timeText = formatTime(seconds);
         float textOffset = (textPaint.descent() + textPaint.ascent()) / 2;
         canvas.drawText(timeText, centerX, centerY - textOffset, textPaint);
