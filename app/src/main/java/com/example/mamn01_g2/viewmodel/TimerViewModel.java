@@ -1,6 +1,8 @@
 package com.example.mamn01_g2.viewmodel;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -14,7 +16,18 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
     private final SensorController sensorController;
     private final TimerController timerController;
     private final MutableLiveData<Long> currentTimeLiveData = new MutableLiveData<>(0L);
+    private final Handler autoLockHandler = new Handler(Looper.getMainLooper());
     private boolean isTimeLocked = false;
+
+    private final Runnable autoLockRunnable = new Runnable() {
+        @Override
+        public void run() {
+            isTimeLocked = true;
+            if (timerController != null) {
+                timerController.playTickFeedback();
+            }
+        }
+    };
 
     public TimerViewModel(Application application) {
         super(application);
@@ -38,8 +51,8 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         if (!timerController.isRunning()) {
             currentTimeLiveData.setValue(timeInMillis);
             isTimeLocked = false;
-
             timerController.playTickFeedback();
+            autoLockHandler.removeCallbacks(autoLockRunnable);
         }
     }
 
@@ -58,14 +71,13 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
     @Override
     protected void onCleared() {
         super.onCleared();
-        // Clean up when the app is completely closed
         sensorController.stopListening();
         timerController.stopTimer();
+        autoLockHandler.removeCallbacks(autoLockRunnable);
     }
 
     @Override
     public void onTimeRotate(int minutesToChange) {
-        // Stop if locked or running!
         if (isTimeLocked || isTimerRunning()) {
             return;
         }
@@ -81,11 +93,12 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
             newTime = 0;
         }
 
-        // Only play tick if the time actually changed!
         if (newTime != currentTime) {
             currentTimeLiveData.setValue(newTime);
-
             timerController.playTickFeedback();
+
+            autoLockHandler.removeCallbacks(autoLockRunnable); // Debounce!
+            autoLockHandler.postDelayed(autoLockRunnable, 1200);
         }
     }
 
@@ -99,6 +112,7 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
                 isTimeLocked = false;
             });
         }
+        autoLockHandler.removeCallbacks(autoLockRunnable);
     }
 
     @Override
@@ -133,10 +147,9 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         if (timerController.isRunning()) {
             timerController.stopTimer();
         }
-
         currentTimeLiveData.setValue(0L);
-
         isTimeLocked = false;
+        autoLockHandler.removeCallbacks(autoLockRunnable);
     }
 
 }
