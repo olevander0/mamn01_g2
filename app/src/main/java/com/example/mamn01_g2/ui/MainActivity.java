@@ -36,22 +36,7 @@ public class MainActivity extends AppCompatActivity {
         ViewCompat.setTooltipText(infoButton, getString(R.string.info_button_content_description));
         infoButton.setOnClickListener(v -> showInfoDialog());
 
-        timePicker.setOnTimeSelectedListener(new TimePicker.OnTimeSelectedListener() {
-            @Override
-            public void onTimePreviewChanged(int selectedSeconds) {
-                viewModel.manuallySetTime(selectedSeconds * 1000L);
-            }
-
-            @Override
-            public void onTimeSelected(int selectedSeconds) {
-                viewModel.manuallySetTime(selectedSeconds * 1000L);
-            }
-
-            @Override
-            public void onTimeSelectionCancelled(int restoredSeconds) {
-                viewModel.manuallySetTime(restoredSeconds * 1000L);
-            }
-        });
+        timePicker.setOnTimeSelectedListener(selectedSeconds -> viewModel.manuallySetTime(selectedSeconds * 1000L));
 
         viewModel.getCurrentTime().observe(this, timeInMillis -> {
             if (!viewModel.isTimerRunning()) {
