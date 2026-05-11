@@ -1,5 +1,7 @@
 package com.example.mamn01_g2.ui;
 
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.util.AttributeSet;
@@ -12,9 +14,9 @@ import android.widget.NumberPicker;
 import android.widget.PopupWindow;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.ViewCompat;
 
 import com.example.mamn01_g2.R;
@@ -24,14 +26,30 @@ import java.util.Locale;
 public class TimePicker extends ConstraintLayout {
 
     private static final int MAX_MINUTES = 99;
-    private static final String EDIT_TIMER_DESCRIPTION = "Edit timer";
-    private static final String EDIT_TIMER_WITH_VALUE_DESCRIPTION = "Edit timer, currently %s";
+    private static final float CLOCK_TEXT_SIZE_PX = 100f;
+    private static final String TIME_TEXT_SAMPLE = "00:00";
+    private static final String TIME_TEXT_PART_SAMPLE = "00";
+    private static final String TIME_TEXT_SEPARATOR = ":";
+    private static final int TARGET_HORIZONTAL_PADDING_DP = 16;
+    private static final int TARGET_VERTICAL_PADDING_DP = 16;
+    private static final int MIN_TARGET_WIDTH_DP = 56;
+    private static final int MIN_TARGET_HEIGHT_DP = 48;
 
-    private AppCompatImageButton openPickerButton;
+    private enum TimeField {
+        MINUTES,
+        SECONDS
+    }
+
+    private View minutePickerTarget;
+    private View secondPickerTarget;
+    private Paint timeTextPaint;
     private int selectedSeconds = 0;
 
     @Nullable
     private PopupWindow popupWindow;
+
+    @Nullable
+    private TimeField activeField;
 
     @Nullable
     private OnTimeSelectedListener onTimeSelectedListener;
@@ -53,47 +71,48 @@ public class TimePicker extends ConstraintLayout {
 
     private void init() {
         LayoutInflater.from(getContext()).inflate(R.layout.view_time_picker, this, true);
-        openPickerButton = findViewById(R.id.openTimerPickerButton);
-        openPickerButton.setOnClickListener(v -> showPickerPopup());
-        updateButtonLabel();
+        minutePickerTarget = findViewById(R.id.minutePickerTarget);
+        secondPickerTarget = findViewById(R.id.secondPickerTarget);
+        minutePickerTarget.setOnClickListener(v -> showPickerPopup(TimeField.MINUTES));
+        secondPickerTarget.setOnClickListener(v -> showPickerPopup(TimeField.SECONDS));
+        configureTimeTextPaint();
+        updateTargetLabels();
+        post(this::positionPickerTargets);
     }
 
     public void setSelectedSeconds(int seconds) {
         selectedSeconds = Math.max(0, seconds);
-        updateButtonLabel();
+        updateTargetLabels();
     }
 
     public void setOnTimeSelectedListener(@Nullable OnTimeSelectedListener onTimeSelectedListener) {
         this.onTimeSelectedListener = onTimeSelectedListener;
     }
 
-    private void showPickerPopup() {
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        positionPickerTargets();
+    }
+
+    private void showPickerPopup(TimeField field) {
         if (popupWindow != null && popupWindow.isShowing()) {
+            boolean isSameField = field == activeField;
             popupWindow.dismiss();
-            return;
+
+            if (isSameField) {
+                return;
+            }
         }
 
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_timer_picker, this, false);
-        NumberPicker minutePicker = dialogView.findViewById(R.id.minutePicker);
-        NumberPicker secondPicker = dialogView.findViewById(R.id.secondPicker);
-        AppCompatImageButton cancelButton = dialogView.findViewById(R.id.cancelTimerPickerButton);
-        AppCompatImageButton applyButton = dialogView.findViewById(R.id.applyTimerPickerButton);
-        final int originalSeconds = selectedSeconds;
-        final boolean[] wasApplied = {false};
+        NumberPicker valuePicker = dialogView.findViewById(R.id.timerValuePicker);
+        int value = field == TimeField.MINUTES ? selectedSeconds / 60 : selectedSeconds % 60;
+        int max = field == TimeField.MINUTES ? MAX_MINUTES : 59;
 
-        configurePicker(minutePicker, 0, MAX_MINUTES, selectedSeconds / 60);
-        configurePicker(secondPicker, 0, 59, selectedSeconds % 60);
-
-        NumberPicker.OnValueChangeListener previewListener = (picker, oldVal, newVal) -> {
-            int previewSeconds = minutePicker.getValue() * 60 + secondPicker.getValue();
-            setSelectedSeconds(previewSeconds);
-
-            if (onTimeSelectedListener != null) {
-                onTimeSelectedListener.onTimePreviewChanged(previewSeconds);
-            }
-        };
-        minutePicker.setOnValueChangedListener(previewListener);
-        secondPicker.setOnValueChangedListener(previewListener);
+        activeField = field;
+        configurePicker(valuePicker, 0, max, value);
+        valuePicker.setOnValueChangedListener((picker, oldVal, newVal) -> updateSelectedTime(field, newVal));
 
         dialogView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
@@ -103,43 +122,71 @@ public class TimePicker extends ConstraintLayout {
         popupWindow.setElevation(dpToPx(8));
         popupWindow.setOnDismissListener(() -> {
             popupWindow = null;
-
-            if (!wasApplied[0]) {
-                setSelectedSeconds(originalSeconds);
-
-                if (onTimeSelectedListener != null) {
-                    onTimeSelectedListener.onTimeSelectionCancelled(originalSeconds);
-                }
-            }
+            activeField = null;
         });
 
-        cancelButton.setContentDescription("Close timer picker");
-        applyButton.setContentDescription("Apply timer");
-        cancelButton.setOnClickListener(v -> {
-            if (popupWindow != null) {
-                popupWindow.dismiss();
-            }
-        });
-
-        applyButton.setOnClickListener(v -> {
-            wasApplied[0] = true;
-            int newSeconds = minutePicker.getValue() * 60 + secondPicker.getValue();
-
-            // Removed the old CountDownTimer cancellation logic from here!
-            setSelectedSeconds(newSeconds);
-
-            if (onTimeSelectedListener != null) {
-                onTimeSelectedListener.onTimeSelected(newSeconds);
-            }
-
-            if (popupWindow != null) {
-                popupWindow.dismiss();
-            }
-        });
-
+        View anchor = field == TimeField.MINUTES ? minutePickerTarget : secondPickerTarget;
         int popupWidth = dialogView.getMeasuredWidth();
-        int xOffset = -Math.max(0, (popupWidth - openPickerButton.getWidth()) / 2);
-        popupWindow.showAsDropDown(openPickerButton, xOffset, dpToPx(8));
+        int xOffset = (anchor.getWidth() - popupWidth) / 2;
+        popupWindow.showAsDropDown(anchor, xOffset, dpToPx(8));
+    }
+
+    private void configureTimeTextPaint() {
+        timeTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        timeTextPaint.setTextSize(CLOCK_TEXT_SIZE_PX);
+        Typeface clockTypeface = ResourcesCompat.getFont(getContext(), R.font.rubik_mono);
+        timeTextPaint.setTypeface(clockTypeface);
+    }
+
+    private void positionPickerTargets() {
+        if (getWidth() == 0 || getHeight() == 0 || timeTextPaint == null) {
+            return;
+        }
+
+        float textWidth = timeTextPaint.measureText(TIME_TEXT_SAMPLE);
+        float partWidth = timeTextPaint.measureText(TIME_TEXT_PART_SAMPLE);
+        float separatorWidth = timeTextPaint.measureText(TIME_TEXT_SEPARATOR);
+        float textStart = (getWidth() - textWidth) / 2f;
+        float minuteCenterX = textStart + partWidth / 2f;
+        float secondCenterX = textStart + partWidth + separatorWidth + partWidth / 2f;
+        Paint.FontMetrics metrics = timeTextPaint.getFontMetrics();
+        int targetWidth = Math.max(dpToPx(MIN_TARGET_WIDTH_DP), Math.round(partWidth + dpToPx(TARGET_HORIZONTAL_PADDING_DP)));
+        int targetHeight = Math.max(dpToPx(MIN_TARGET_HEIGHT_DP), Math.round((metrics.descent - metrics.ascent) + dpToPx(TARGET_VERTICAL_PADDING_DP)));
+        int top = Math.round((getHeight() - targetHeight) / 2f);
+
+        positionTarget(minutePickerTarget, minuteCenterX, top, targetWidth, targetHeight);
+        positionTarget(secondPickerTarget, secondCenterX, top, targetWidth, targetHeight);
+    }
+
+    private void positionTarget(View target, float centerX, int top, int width, int height) {
+        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) target.getLayoutParams();
+        params.width = width;
+        params.height = height;
+        params.leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID;
+        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID;
+        params.rightToRight = ConstraintLayout.LayoutParams.UNSET;
+        params.bottomToBottom = ConstraintLayout.LayoutParams.UNSET;
+        params.leftMargin = Math.max(0, Math.min(getWidth() - width, Math.round(centerX - width / 2f)));
+        params.topMargin = Math.max(0, Math.min(getHeight() - height, top));
+        target.setLayoutParams(params);
+    }
+
+    private void updateSelectedTime(TimeField field, int newValue) {
+        int minutes = selectedSeconds / 60;
+        int seconds = selectedSeconds % 60;
+
+        if (field == TimeField.MINUTES) {
+            minutes = newValue;
+        } else {
+            seconds = newValue;
+        }
+
+        int newSeconds = minutes * 60 + seconds;
+        setSelectedSeconds(newSeconds);
+
+        if (onTimeSelectedListener != null) {
+            onTimeSelectedListener.onTimeSelected(newSeconds);
+        }
     }
 
     private void configurePicker(NumberPicker picker, int min, int max, int value) {
@@ -153,18 +200,17 @@ public class TimePicker extends ConstraintLayout {
         picker.post(() -> stylePicker(picker));
     }
 
-    private void updateButtonLabel() {
-        if (openPickerButton == null) {
+    private void updateTargetLabels() {
+        if (minutePickerTarget == null || secondPickerTarget == null) {
             return;
         }
 
-        String description = selectedSeconds > 0 ? String.format(Locale.getDefault(), EDIT_TIMER_WITH_VALUE_DESCRIPTION, formatDuration(selectedSeconds)) : EDIT_TIMER_DESCRIPTION;
-        openPickerButton.setContentDescription(description);
-        ViewCompat.setTooltipText(openPickerButton, description);
-    }
-
-    private String formatDuration(int totalSeconds) {
-        return String.format(Locale.getDefault(), "%02d:%02d", totalSeconds / 60, totalSeconds % 60);
+        String minuteDescription = getResources().getString(R.string.edit_minutes_with_value, selectedSeconds / 60);
+        String secondDescription = getResources().getString(R.string.edit_seconds_with_value, selectedSeconds % 60);
+        minutePickerTarget.setContentDescription(minuteDescription);
+        secondPickerTarget.setContentDescription(secondDescription);
+        ViewCompat.setTooltipText(minutePickerTarget, minuteDescription);
+        ViewCompat.setTooltipText(secondPickerTarget, secondDescription);
     }
 
     private int dpToPx(int dp) {
@@ -194,10 +240,6 @@ public class TimePicker extends ConstraintLayout {
     }
 
     public interface OnTimeSelectedListener {
-        void onTimePreviewChanged(int selectedSeconds);
-
         void onTimeSelected(int selectedSeconds);
-
-        void onTimeSelectionCancelled(int restoredSeconds);
     }
 }

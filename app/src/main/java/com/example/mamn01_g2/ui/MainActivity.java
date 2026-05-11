@@ -1,6 +1,17 @@
 package com.example.mamn01_g2.ui;
 
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.Window;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 import android.view.WindowManager;
 
 import androidx.appcompat.app.AlertDialog;
@@ -29,22 +40,11 @@ public class MainActivity extends AppCompatActivity {
 
         timePicker = findViewById(R.id.time_picker);
 
-        timePicker.setOnTimeSelectedListener(new TimePicker.OnTimeSelectedListener() {
-            @Override
-            public void onTimePreviewChanged(int selectedSeconds) {
-                viewModel.manuallySetTime(selectedSeconds * 1000L);
-            }
+        AppCompatImageButton infoButton = findViewById(R.id.infoButton);
+        ViewCompat.setTooltipText(infoButton, getString(R.string.info_button_content_description));
+        infoButton.setOnClickListener(v -> showInfoDialog());
 
-            @Override
-            public void onTimeSelected(int selectedSeconds) {
-                viewModel.manuallySetTime(selectedSeconds * 1000L);
-            }
-
-            @Override
-            public void onTimeSelectionCancelled(int restoredSeconds) {
-                viewModel.manuallySetTime(restoredSeconds * 1000L);
-            }
-        });
+        timePicker.setOnTimeSelectedListener(selectedSeconds -> viewModel.manuallySetTime(selectedSeconds * 1000L));
 
         viewModel.getCurrentTime().observe(this, timeInMillis -> {
             if (!viewModel.isTimerRunning()) {
@@ -58,6 +58,26 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getLockInState().observe(this, isLockedIn -> {
             updateUILockIn(isLockedIn);
         });
+    }
+
+    private void showInfoDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_info, null);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        AppCompatImageButton closeButton = dialogView.findViewById(R.id.closeInfoDialogButton);
+        AppCompatButton dismissButton = dialogView.findViewById(R.id.dismissInfoDialogButton);
+        closeButton.setOnClickListener(v -> dialog.dismiss());
+        dismissButton.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.setOnShowListener(shownDialog -> {
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, R.color.transparent)));
+            }
+        });
+        dialog.show();
     }
 
     @Override

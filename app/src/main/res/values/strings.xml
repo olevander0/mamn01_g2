@@ -1,4 +1,19 @@
 <resources>
     <string name="app_name">mamn01_g2</string>
     <string name="set_time">SET TIME</string>
+    <string name="main_instructions">Spin phone or tap to set time\nShake to reset</string>
+    <string name="edit_minutes">Edit minutes</string>
+    <string name="edit_minutes_with_value">Edit minutes, currently %1$02d</string>
+    <string name="edit_seconds">Edit seconds</string>
+    <string name="edit_seconds_with_value">Edit seconds, currently %1$02d</string>
+    <string name="info_button_content_description">How to use the timer</string>
+    <string name="close_info_dialog">Close instructions</string>
+    <string name="info_dialog_title">Instructions</string>
+    <string name="info_dialog_set_time_title">Set the time</string>
+    <string name="info_dialog_set_time_body">Rotate the phone face-up to adjust minutes, or tap minutes or seconds on the clock to fine-tune them.</string>
+    <string name="info_dialog_start_pause_title">Run the timer</string>
+    <string name="info_dialog_start_pause_body">Place the phone face-down to start. Flip it face-up to pause or silence the alarm.</string>
+    <string name="info_dialog_shortcuts_title">Quick gestures</string>
+    <string name="info_dialog_shortcuts_body">Lift while face-down to add five minutes. Shake anytime to reset.</string>
+    <string name="info_dialog_dismiss">Ok</string>
 </resources>
