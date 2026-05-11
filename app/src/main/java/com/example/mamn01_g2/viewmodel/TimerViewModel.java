@@ -6,6 +6,7 @@ import android.os.Looper;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.mamn01_g2.sensor.GestureListener;
@@ -18,6 +19,12 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
     private final MutableLiveData<Long> currentTimeLiveData = new MutableLiveData<>(0L);
     private final Handler autoLockHandler = new Handler(Looper.getMainLooper());
     private boolean isTimeLocked = false;
+    private final MutableLiveData<Boolean> isFaceUp = new MutableLiveData<>(false);
+    public LiveData<Boolean> getIsFaceUp() { return isFaceUp; }
+    private final MutableLiveData<Boolean> isTimerRunningLiveData = new MutableLiveData<>(false);
+    public LiveData<Boolean> getIsTimerRunning() { return isTimerRunningLiveData; }
+    private final MediatorLiveData<Boolean> lockInState = new MediatorLiveData<>();
+    public LiveData<Boolean> getLockInState() { return lockInState; }
 
     private final Runnable autoLockRunnable = new Runnable() {
         @Override
@@ -33,6 +40,8 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         super(application);
         sensorController = new SensorController(application, this);
         timerController = new TimerController(application);
+        lockInState.addSource(isFaceUp, value -> updateLockInState());
+        lockInState.addSource(isTimerRunningLiveData, value -> updateLockInState());
     }
 
     public LiveData<Long> getCurrentTime() {
@@ -104,12 +113,15 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
 
     @Override
     public void onPhoneFlippedDown() {
+        isFaceUp.setValue(false);
         Long currentSetTime = currentTimeLiveData.getValue();
 
         if (currentSetTime != null && currentSetTime > 0 && !timerController.isRunning()) {
+            isTimerRunningLiveData.setValue(true);
             timerController.startTimer(currentSetTime, currentTimeLiveData::postValue, () -> {
                 currentTimeLiveData.postValue(0L);
                 isTimeLocked = false;
+                isTimerRunningLiveData.setValue(false);
             });
         }
         autoLockHandler.removeCallbacks(autoLockRunnable);
@@ -117,8 +129,7 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
 
     @Override
     public void onPhoneFlippedUp() {
-        timerController.stopTimer();
-        isTimeLocked = false;
+        isFaceUp.setValue(true);
     }
 
     @Override
@@ -150,6 +161,14 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         currentTimeLiveData.setValue(0L);
         isTimeLocked = false;
         autoLockHandler.removeCallbacks(autoLockRunnable);
+    }
+
+    private void updateLockInState() {
+        Boolean faceUp = isFaceUp.getValue();
+        Boolean running = isTimerRunningLiveData.getValue();
+        if (faceUp == null) faceUp = false;
+        if (running == null) running = false;
+        lockInState.setValue(faceUp && running);
     }
 
 }
