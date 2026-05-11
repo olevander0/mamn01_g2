@@ -10,7 +10,7 @@
     tools:context=".ui.MainActivity">
 
     <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/infoButton"
+        android:id="@+id/btn_info"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_marginTop="8dp"
@@ -50,16 +50,31 @@
     </FrameLayout>
 
     <TextView
-        android:id="@+id/instructions"
+        android:id="@+id/tv_instruction"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="96dp"
         android:fontFamily="@font/rubik"
         android:text="@string/main_instructions"
         android:textAlignment="center"
         android:textColor="@color/text_color"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/clockContainer" />
+
+    <Button
+        android:id="@+id/btn_lock_toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="132dp"
+        android:fontFamily="@font/rubik"
+        android:text="lock time"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clockContainer"
+        app:layout_constraintVertical_bias="0.942" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

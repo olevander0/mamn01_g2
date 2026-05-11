@@ -16,4 +16,6 @@
     <string name="info_dialog_shortcuts_title">Quick gestures</string>
     <string name="info_dialog_shortcuts_body">Lift while face-down to add five minutes. Shake anytime to reset.</string>
     <string name="info_dialog_dismiss">Ok</string>
+    <string name="unlock_time">UNLOCK TIME</string>
+    <string name="lock_time">LOCK TIME</string>
 </resources>

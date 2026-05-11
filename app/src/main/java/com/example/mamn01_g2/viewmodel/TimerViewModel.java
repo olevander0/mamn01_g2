@@ -1,8 +1,6 @@
 package com.example.mamn01_g2.viewmodel;
 
 import android.app.Application;
-import android.os.Handler;
-import android.os.Looper;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -17,24 +15,12 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
     private final SensorController sensorController;
     private final TimerController timerController;
     private final MutableLiveData<Long> currentTimeLiveData = new MutableLiveData<>(0L);
-    private final Handler autoLockHandler = new Handler(Looper.getMainLooper());
-    private boolean isTimeLocked = false;
     private final MutableLiveData<Boolean> isFaceUp = new MutableLiveData<>(false);
-    public LiveData<Boolean> getIsFaceUp() { return isFaceUp; }
     private final MutableLiveData<Boolean> isTimerRunningLiveData = new MutableLiveData<>(false);
-    public LiveData<Boolean> getIsTimerRunning() { return isTimerRunningLiveData; }
     private final MediatorLiveData<Boolean> lockInState = new MediatorLiveData<>();
-    public LiveData<Boolean> getLockInState() { return lockInState; }
+    private final MutableLiveData<Boolean> isLockedLiveData = new MutableLiveData<>(false);
+    private boolean isTimeLocked = false;
 
-    private final Runnable autoLockRunnable = new Runnable() {
-        @Override
-        public void run() {
-            isTimeLocked = true;
-            if (timerController != null) {
-                timerController.playTickFeedback();
-            }
-        }
-    };
 
     public TimerViewModel(Application application) {
         super(application);
@@ -42,6 +28,32 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         timerController = new TimerController(application);
         lockInState.addSource(isFaceUp, value -> updateLockInState());
         lockInState.addSource(isTimerRunningLiveData, value -> updateLockInState());
+    }
+
+    public void toggleTimeLock() {
+        Long currentSetTime = currentTimeLiveData.getValue();
+        if (!timerController.isRunning() && currentSetTime != null && currentSetTime > 0) {
+
+            isTimeLocked = !isTimeLocked;
+            isLockedLiveData.setValue(isTimeLocked);
+            timerController.playTickFeedback();
+        }
+    }
+
+    public LiveData<Boolean> getIsLocked() {
+        return isLockedLiveData;
+    }
+
+    public LiveData<Boolean> getIsFaceUp() {
+        return isFaceUp;
+    }
+
+    public LiveData<Boolean> getIsTimerRunning() {
+        return isTimerRunningLiveData;
+    }
+
+    public LiveData<Boolean> getLockInState() {
+        return lockInState;
     }
 
     public LiveData<Long> getCurrentTime() {
@@ -61,7 +73,7 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
             currentTimeLiveData.setValue(timeInMillis);
             isTimeLocked = false;
             timerController.playTickFeedback();
-            autoLockHandler.removeCallbacks(autoLockRunnable);
+            isLockedLiveData.setValue(false);
         }
     }
 
@@ -82,7 +94,7 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         super.onCleared();
         sensorController.stopListening();
         timerController.stopTimer();
-        autoLockHandler.removeCallbacks(autoLockRunnable);
+
     }
 
     @Override
@@ -105,9 +117,6 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         if (newTime != currentTime) {
             currentTimeLiveData.setValue(newTime);
             timerController.playTickFeedback();
-
-            autoLockHandler.removeCallbacks(autoLockRunnable); // Debounce!
-            autoLockHandler.postDelayed(autoLockRunnable, 1200);
         }
     }
 
@@ -124,7 +133,6 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
                 isTimerRunningLiveData.setValue(false);
             });
         }
-        autoLockHandler.removeCallbacks(autoLockRunnable);
     }
 
     @Override
@@ -160,7 +168,7 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         }
         currentTimeLiveData.setValue(0L);
         isTimeLocked = false;
-        autoLockHandler.removeCallbacks(autoLockRunnable);
+        isLockedLiveData.setValue(false);
     }
 
     private void updateLockInState() {
