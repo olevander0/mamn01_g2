@@ -4,20 +4,20 @@
     <style name="Theme.Mamn01_g2" parent="Base.Theme.Mamn01_g2" />
 
     <style name="ThemeOverlay.Mamn01_g2.TimerPicker" parent="Theme.Material3.Light">
-        <item name="android:colorBackground">@color/background_color</item>
-        <item name="android:windowBackground">@color/background_color</item>
-        <item name="android:textColor">@color/text_color</item>
-        <item name="android:textColorPrimary">@color/text_color</item>
-        <item name="android:textColorSecondary">@color/text_color</item>
-        <item name="android:editTextColor">@color/text_color</item>
-        <item name="android:colorAccent">@color/progress_color</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textColorPrimary">@color/text</item>
+        <item name="android:textColorSecondary">@color/text</item>
+        <item name="android:editTextColor">@color/text</item>
+        <item name="android:colorAccent">@color/progress</item>
     </style>
 
     <style name="InfoDialogHeading">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:fontFamily">@font/rubik</item>
-        <item name="android:textColor">@color/text_color</item>
+        <item name="android:textColor">@color/text</item>
         <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
     </style>
@@ -29,7 +29,34 @@
         <item name="android:layout_marginBottom">14dp</item>
         <item name="android:fontFamily">@font/rubik</item>
         <item name="android:lineSpacingExtra">3dp</item>
-        <item name="android:textColor">@color/text_color</item>
+        <item name="android:textColor">@color/text</item>
         <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- PRIMARY BUTTON (Solid Red) -->
+    <style name="Widget.Mamn01.Button.Primary" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/bg_button_primary</item>
+        <item name="android:textColor">@color/background</item> <!-- White/Cream text -->
+        <item name="android:fontFamily">@font/rubik_mono</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:paddingStart">@dimen/button_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/button_padding_horizontal</item>
+        <item name="android:paddingTop">@dimen/button_padding_vertical</item>
+        <item name="android:paddingBottom">@dimen/button_padding_vertical</item>
+        <item name="android:textAllCaps">true</item>
+        <!-- Remove default Android button shadows for flat modern look -->
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <!-- SECONDARY BUTTON (Solid Dark Red, Flat) -->
+    <style name="Widget.Mamn01.Button.Secondary" parent="Widget.Mamn01.Button.Primary">
+        <!-- Override background with new dark red shape -->
+        <item name="android:background">@drawable/bg_button_secondary</item>
+
+        <item name="android:textColor">@color/background</item>
+
+        <!-- Remove Drop Shadow -->
+        <item name="android:elevation">0dp</item>
+        <item name="android:stateListAnimator">@null</item>
     </style>
 </resources>

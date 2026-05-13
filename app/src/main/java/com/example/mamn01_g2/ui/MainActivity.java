@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateUIForState(TimerState state) {
         cancelPulseAnimation(clockView); // Stop shaking by default
-        rootLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.background_color));
+        rootLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.background));
 
         switch (state) {
             case IDLE:

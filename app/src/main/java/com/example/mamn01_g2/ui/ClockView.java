@@ -18,7 +18,6 @@ import com.example.mamn01_g2.R;
 import java.util.Locale;
 
 public class ClockView extends View {
-    private Paint circlePaint;
     private Paint progressPaint;
     private Paint textPaint;
     private RectF rectF;
@@ -28,34 +27,35 @@ public class ClockView extends View {
     private float progressAngle = 0;
     private long totalInitialTimeInMillis = 0;
 
+    private float progressRadius;
+
     public ClockView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
     }
 
     private void init(Context context, AttributeSet attrs) {
-        int bgColor = ContextCompat.getColor(context, R.color.orange);
-        int progColor = ContextCompat.getColor(context, R.color.progress_color);
-        int txtColor = ContextCompat.getColor(context, R.color.text_color);
-        float strokeW = 15f;
+        int progColor = ContextCompat.getColor(context, R.color.progress);
+        int txtColor = ContextCompat.getColor(context, R.color.text);
+
+        float strokeW = getResources().getDimension(R.dimen.clock_progress_stroke);
+        float textSize = getResources().getDimension(R.dimen.clock_text_size);
+
+        float targetDiameter = getResources().getDimension(R.dimen.clock_progress_diameter);
+        progressRadius = targetDiameter / 2f;
 
         if (attrs != null) {
             TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.ClockView, 0, 0);
 
             try {
-                bgColor = a.getColor(R.styleable.ClockView_clockBackgroundColor, bgColor);
                 progColor = a.getColor(R.styleable.ClockView_clockProgressColor, progColor);
                 txtColor = a.getColor(R.styleable.ClockView_clockTextColor, txtColor);
                 strokeW = a.getDimension(R.styleable.ClockView_clockStrokeWidth, strokeW);
+                textSize = a.getDimension(R.styleable.ClockView_clockTextSize, textSize);
             } finally {
                 a.recycle();
             }
         }
-
-        circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        circlePaint.setColor(bgColor);
-        circlePaint.setStyle(Paint.Style.STROKE);
-        circlePaint.setStrokeWidth(10f);
 
         progressPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         progressPaint.setColor(progColor);
@@ -65,7 +65,7 @@ public class ClockView extends View {
 
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setColor(txtColor);
-        textPaint.setTextSize(100f);
+        textPaint.setTextSize(textSize);
         textPaint.setTextAlign(Paint.Align.CENTER);
 
         rectF = new RectF();
