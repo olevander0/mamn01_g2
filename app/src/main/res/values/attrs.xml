@@ -5,5 +5,6 @@
         <attr name="clockProgressColor" format="color" />
         <attr name="clockTextColor" format="color" />
         <attr name="clockStrokeWidth" format="dimension" />
+        <attr name="clockTextSize" format="dimension" />
     </declare-styleable>
 </resources>

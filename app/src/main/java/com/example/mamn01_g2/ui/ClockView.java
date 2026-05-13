@@ -20,6 +20,7 @@ import java.util.Locale;
 public class ClockView extends View {
     private Paint progressPaint;
     private Paint textPaint;
+    // Gronk DELETE circlePaint here! 🚫⭕
     private RectF rectF;
 
     private float rotationDegrees = 0;
@@ -35,11 +36,11 @@ public class ClockView extends View {
     }
 
     private void init(Context context, AttributeSet attrs) {
-        int progColor = ContextCompat.getColor(context, R.color.progress);
-        int txtColor = ContextCompat.getColor(context, R.color.text);
+        int progressColor = ContextCompat.getColor(context, R.color.progress);
+        int textColor = ContextCompat.getColor(context, R.color.text);
 
-        float strokeW = getResources().getDimension(R.dimen.clock_progress_stroke);
-        float textSize = getResources().getDimension(R.dimen.clock_text_size);
+        float strokeWidth = getResources().getDimension(R.dimen.clock_progress_stroke);
+        float clockTextSize = getResources().getDimension(R.dimen.clock_text_size);
 
         float targetDiameter = getResources().getDimension(R.dimen.clock_progress_diameter);
         progressRadius = targetDiameter / 2f;
@@ -48,24 +49,24 @@ public class ClockView extends View {
             TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.ClockView, 0, 0);
 
             try {
-                progColor = a.getColor(R.styleable.ClockView_clockProgressColor, progColor);
-                txtColor = a.getColor(R.styleable.ClockView_clockTextColor, txtColor);
-                strokeW = a.getDimension(R.styleable.ClockView_clockStrokeWidth, strokeW);
-                textSize = a.getDimension(R.styleable.ClockView_clockTextSize, textSize);
+                progressColor = a.getColor(R.styleable.ClockView_clockProgressColor, progressColor);
+                textColor = a.getColor(R.styleable.ClockView_clockTextColor, textColor);
+                strokeWidth = a.getDimension(R.styleable.ClockView_clockStrokeWidth, strokeWidth);
+                clockTextSize = a.getDimension(R.styleable.ClockView_clockTextSize, clockTextSize);
             } finally {
                 a.recycle();
             }
         }
 
         progressPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        progressPaint.setColor(progColor);
+        progressPaint.setColor(progressColor);
         progressPaint.setStyle(Paint.Style.STROKE);
-        progressPaint.setStrokeWidth(strokeW);
+        progressPaint.setStrokeWidth(strokeWidth);
         progressPaint.setStrokeCap(Paint.Cap.ROUND);
 
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        textPaint.setColor(txtColor);
-        textPaint.setTextSize(textSize);
+        textPaint.setColor(textColor);
+        textPaint.setTextSize(clockTextSize);
         textPaint.setTextAlign(Paint.Align.CENTER);
 
         rectF = new RectF();
@@ -119,14 +120,15 @@ public class ClockView extends View {
 
         int width = getWidth();
         int height = getHeight();
-        float radius = Math.min(width, height) / 3f;
+
+        // Find exact center of cave wall 🎯
         float centerX = width / 2f;
         float centerY = height / 2f;
 
-        rectF.set(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+        // Gronk use precise progressRadius from dimens.xml! 📐
+        rectF.set(centerX - progressRadius, centerY - progressRadius, centerX + progressRadius, centerY + progressRadius);
 
-        canvas.drawCircle(centerX, centerY, radius, circlePaint);
-
+        // SVG background draws circle. Canvas only draws progress arc!
         canvas.drawArc(rectF, -90, progressAngle, false, progressPaint);
 
         canvas.save();

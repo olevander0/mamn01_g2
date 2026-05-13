@@ -1,5 +1,6 @@
 <resources>
-    <style name="Base.Theme.Mamn01_g2" parent="Theme.Material3.Light.NoActionBar" />
+
+<style name="Base.Theme.Mamn01_g2" parent="Theme.Material3.Light.NoActionBar" />
 
     <style name="Theme.Mamn01_g2" parent="Base.Theme.Mamn01_g2" />
 
@@ -52,7 +53,6 @@
     <style name="Widget.Mamn01.Button.Secondary" parent="Widget.Mamn01.Button.Primary">
         <!-- Override background with new dark red shape -->
         <item name="android:background">@drawable/bg_button_secondary</item>
-
         <item name="android:textColor">@color/background</item>
 
         <!-- Remove Drop Shadow -->

@@ -28,7 +28,8 @@ public class MainActivity extends AppCompatActivity {
     private ClockView clockView;
 
     private Button snoozeButton;
-    private Button actionButton; // Handles Lock AND Stop
+    private Button btnLock;
+    private Button btnUnlock;
     private TextView instructionsText;
     private AppCompatImageButton infoButton;
     private ConstraintLayout rootLayout;
@@ -38,8 +39,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        snoozeButton = findViewById(R.id.snoozeButton);
-        actionButton = findViewById(R.id.btn_lock_toggle);
+        snoozeButton = findViewById(R.id.btn_snooze);
+        btnLock = findViewById(R.id.btn_lock);
+        btnUnlock = findViewById(R.id.btn_unlock);
         instructionsText = findViewById(R.id.tv_instruction);
         clockView = findViewById(R.id.clock_view);
         timePicker = findViewById(R.id.time_picker);
@@ -81,9 +83,11 @@ public class MainActivity extends AppCompatActivity {
 
                 snoozeButton.setVisibility(View.GONE);
 
-                actionButton.setVisibility(View.VISIBLE);
-                actionButton.setText(R.string.lock_time);
-                actionButton.setOnClickListener(v -> viewModel.toggleTimeLock());
+                btnUnlock.setVisibility(View.GONE); // Hide dark button
+
+                btnLock.setVisibility(View.VISIBLE); // Show primary button
+                btnLock.setText(R.string.lock_time);
+                btnLock.setOnClickListener(v -> viewModel.toggleTimeLock());
                 break;
 
             case LOCKED:
@@ -95,9 +99,10 @@ public class MainActivity extends AppCompatActivity {
 
                 snoozeButton.setVisibility(View.GONE);
 
-                actionButton.setVisibility(View.VISIBLE);
-                actionButton.setText(R.string.unlock_time);
-                actionButton.setOnClickListener(v -> viewModel.toggleTimeLock());
+                btnLock.setVisibility(View.GONE); // Hide primary button
+
+                btnUnlock.setVisibility(View.VISIBLE); // Show dark button! 🌑
+                btnUnlock.setOnClickListener(v -> viewModel.toggleTimeLock());
 
                 // Small bounce Animation
                 instructionsText.animate().scaleX(1.1f).scaleY(1.1f).setDuration(150).withEndAction(() -> instructionsText.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150));
@@ -112,9 +117,11 @@ public class MainActivity extends AppCompatActivity {
                 snoozeButton.setVisibility(View.VISIBLE);
                 snoozeButton.setOnClickListener(v -> viewModel.snoozeTimer());
 
-                actionButton.setVisibility(View.VISIBLE);
-                actionButton.setText("STOP");
-                actionButton.setOnClickListener(v -> viewModel.stopAlarm());
+                btnUnlock.setVisibility(View.GONE);
+
+                btnLock.setVisibility(View.VISIBLE); // Reuse primary button for STOP! 🛑
+                btnLock.setText("STOP");
+                btnLock.setOnClickListener(v -> viewModel.stopAlarm());
                 break;
 
             case WARNING:
@@ -126,12 +133,14 @@ public class MainActivity extends AppCompatActivity {
                 snoozeButton.setVisibility(View.VISIBLE);
                 snoozeButton.setOnClickListener(v -> viewModel.snoozeTimer());
 
-                actionButton.setVisibility(View.VISIBLE);
-                actionButton.setText("STOP");
-                actionButton.setOnClickListener(v -> viewModel.stopAlarm());
+                btnUnlock.setVisibility(View.GONE);
+
+                btnLock.setVisibility(View.VISIBLE);
+                btnLock.setText("STOP");
+                btnLock.setOnClickListener(v -> viewModel.stopAlarm());
 
                 rootLayout.setBackgroundColor(Color.parseColor("#481D24"));
-                pulseAnimation(clockView); // Pulsing animation for clock
+                pulseAnimation(clockView);
                 break;
 
             case RINGING:
@@ -144,9 +153,11 @@ public class MainActivity extends AppCompatActivity {
                 snoozeButton.setVisibility(View.VISIBLE);
                 snoozeButton.setOnClickListener(v -> viewModel.snoozeTimer());
 
-                actionButton.setVisibility(View.VISIBLE);
-                actionButton.setText("STOP ALARM");
-                actionButton.setOnClickListener(v -> viewModel.stopAlarm());
+                btnUnlock.setVisibility(View.GONE);
+
+                btnLock.setVisibility(View.VISIBLE);
+                btnLock.setText("STOP ALARM");
+                btnLock.setOnClickListener(v -> viewModel.stopAlarm());
 
                 pulseAnimation(clockView);
                 break;
