@@ -21,8 +21,8 @@
         android:textSize="17sp"
         android:textAllCaps="false"
         android:fontFamily="@font/rubik"
-        android:textColor="@color/background_color"
-        android:backgroundTint="@color/progress_color" />
+        android:textColor="@color/background"
+        android:backgroundTint="@color/progress" />
 
     <!-- STOP BUTTON: Uses our custom outline drawable -->
     <Button
@@ -34,7 +34,7 @@
         android:textAllCaps="false"
         android:textSize="14sp"
         android:fontFamily="@font/rubik"
-        android:textColor="@color/text_color"
+        android:textColor="@color/text"
         android:background="@drawable/bg_outlined_button" />
 
 </LinearLayout>

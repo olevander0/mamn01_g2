@@ -218,7 +218,7 @@ public class TimePicker extends ConstraintLayout {
     }
 
     private void stylePicker(NumberPicker picker) {
-        int pickerTextColor = ContextCompat.getColor(getContext(), R.color.text_color);
+        int pickerTextColor = ContextCompat.getColor(getContext(), R.color.text);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             picker.setTextColor(pickerTextColor);

@@ -23,7 +23,7 @@
             android:layout_weight="1"
             android:fontFamily="@font/rubik"
             android:text="@string/info_dialog_title"
-            android:textColor="@color/text_color"
+            android:textColor="@color/text"
             android:textSize="22sp"
             android:textStyle="bold" />
 
@@ -37,7 +37,7 @@
             android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_timer_close"
-            android:tint="@color/text_color" />
+            android:tint="@color/text" />
     </LinearLayout>
 
     <ScrollView
@@ -88,7 +88,7 @@
         android:minWidth="88dp"
         android:text="@string/info_dialog_dismiss"
         android:textAllCaps="false"
-        android:textColor="@color/background_color"
+        android:textColor="@color/background"
         android:textSize="15sp"
-        app:backgroundTint="@color/progress_color" />
+        app:backgroundTint="@color/progress" />
 </LinearLayout>

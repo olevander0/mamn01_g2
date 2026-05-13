@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_color"
+    android:background="@color/background"
     android:keepScreenOn="true"
     tools:context=".ui.MainActivity">
 
@@ -20,14 +20,14 @@
         android:padding="12dp"
         android:scaleType="centerInside"
         android:src="@drawable/ic_info"
-        android:tint="@color/text_color"
+        android:tint="@color/text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <FrameLayout
         android:id="@+id/clockContainer"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
+        android:layout_width="320dp"
+        android:layout_height="320dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -37,15 +37,17 @@
             android:id="@+id/clock_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@drawable/ic_clock_bg"
             app:clockBackgroundColor="@color/orange"
-            app:clockProgressColor="@color/progress_color"
+            app:clockProgressColor="@color/progress"
             app:clockStrokeWidth="15dp"
-            app:clockTextColor="@color/text_color" />
+            app:clockTextColor="@color/text" />
 
         <com.example.mamn01_g2.ui.TimePicker
             android:id="@+id/time_picker"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
 
     </FrameLayout>
 
@@ -57,7 +59,7 @@
         android:fontFamily="@font/rubik"
         android:text="@string/main_instructions"
         android:textAlignment="center"
-        android:textColor="@color/text_color"
+        android:textColor="@color/text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"

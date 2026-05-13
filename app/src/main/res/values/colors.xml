@@ -7,8 +7,17 @@
     <color name="dark_red">#481D24</color>
     <color name="black">#333232</color>
 
-    <color name="background_color">#FFF6E3</color>
-    <color name="text_color">#481D24</color>
-    <color name="progress_color">#C5283D</color>
+    <color name="background">@color/white</color>
+    <color name="text">@color/dark_red</color>
+    <color name="progress">@color/red</color>
     <color name="transparent">#00000000</color>
+
+    <color name="primary">@color/red</color>
+    <color name="primary_variant">@color/dark_red</color>
+    <color name="on_primary">@color/white</color>
+    <color name="secondary">@color/yellow</color>
+    <color name="secondary_variant">@color/orange</color>
+    <color name="on_secondary">@color/black</color>
+    <color name="surface">@color/white</color>
+    <color name="on_surface">@color/black</color>
 </resources>
