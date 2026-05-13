@@ -18,4 +18,5 @@
     <string name="info_dialog_dismiss">Ok</string>
     <string name="unlock_time">UNLOCK TIME</string>
     <string name="lock_time">LOCK TIME</string>
+    <string name="_5_min">+5 min</string>
 </resources>

@@ -15,16 +15,18 @@ public class SensorController {
     private final MovementDetector movementDetector;
     private Sensor rotationVectorSensor;
     private Sensor accelerometerSensor;
+    private Sensor proximitySensor;
 
     public SensorController(Context context, GestureListener listener) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 
         rotationDetector = new RotationDetector(listener);
-        movementDetector = new MovementDetector(listener); // We will build this next!
+        movementDetector = new MovementDetector(listener);
 
         if (sensorManager != null) {
             rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
             accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         }
     }
 
@@ -41,6 +43,10 @@ public class SensorController {
         // Register the movement (flip/lift) detector
         if (accelerometerSensor != null) {
             sensorManager.registerListener(movementDetector, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        if (proximitySensor != null) {
+            sensorManager.registerListener(movementDetector, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
     }
 

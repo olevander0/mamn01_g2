@@ -13,11 +13,12 @@ public class MovementDetector implements SensorEventListener {
 
     private static final float FACE_DOWN_THRESHOLD = -7.5f;
     private static final float FACE_UP_THRESHOLD = 7.5f;
-    private static final float LIFT_THRESHOLD = -11.5f;
-    private static final long LIFT_COOLDOWN_MS = 1500;
+    private static final float LIFT_THRESHOLD = -13.0f;
+    private static final long LIFT_COOLDOWN_MS = 2000;
     private static final float SHAKE_THRESHOLD = 12.0f;
     private final GestureListener listener;
     private boolean isFaceDown = false;
+    private boolean isNearSurface = false;
     private long lastLiftTime = 0;
     private long lastShakeTime = 0;
 
@@ -27,6 +28,14 @@ public class MovementDetector implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        // --- 1. PROXIMITY SENSOR LOGIC ---
+        if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
+            float distance = event.values[0];
+            // If distance is less than max range, screen is against table!
+            isNearSurface = (distance < event.sensor.getMaximumRange());
+        }
+
+        // --- 2. ACCELEROMETER LOGIC ---
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
             float xValue = event.values[0];
@@ -56,14 +65,15 @@ public class MovementDetector implements SensorEventListener {
                 if (listener != null) listener.onPhoneFlippedUp();
             }
 
-            // LIFT DETECTION
-            if (isFaceDown && zValue < LIFT_THRESHOLD) {
+            // --- LIFT DETECTION
+            if (isFaceDown && !isNearSurface && zValue < LIFT_THRESHOLD) {
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - lastLiftTime > LIFT_COOLDOWN_MS) {
                     lastLiftTime = currentTime;
                     if (listener != null) listener.onPhoneLiftedFaceDown();
                 }
             }
+
         }
     }
 

@@ -34,14 +34,37 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Button snoozeButton = findViewById(R.id.snoozeButton);
+        Button lockButton = findViewById(R.id.btn_lock_toggle);
+        TextView instructionsText = findViewById(R.id.tv_instruction);
+
         clockView = findViewById(R.id.clock_view);
         viewModel = new ViewModelProvider(this).get(TimerViewModel.class);
         timePicker = findViewById(R.id.time_picker);
-
-        TextView instructionsText = findViewById(R.id.tv_instruction);
-
-        Button lockButton = findViewById(R.id.btn_lock_toggle);
         lockButton.setOnClickListener(v -> viewModel.toggleTimeLock());
+        snoozeButton.setOnClickListener(v -> viewModel.snoozeTimer());
+
+        // Watch Alarm State! 🚨
+        viewModel.getIsRinging().observe(this, isRinging -> {
+            if (isRinging) {
+                instructionsText.setText("TIME UP! ⏰\nLift phone or press Snooze");
+                instructionsText.setTextColor(Color.parseColor("#C5283D")); // Red!
+
+                snoozeButton.setVisibility(View.VISIBLE); // Show Snooze!
+
+                lockButton.setText("STOP ALARM");
+                lockButton.setOnClickListener(v -> viewModel.stopAlarm()); // Change action!
+            } else {
+                snoozeButton.setVisibility(View.GONE); // Hide Snooze!
+
+                // Revert to normal lock logic
+                lockButton.setOnClickListener(v -> viewModel.toggleTimeLock());
+
+                // Let other observer handle normal text colors...
+            }
+        });
+
+
 
         viewModel.getIsLocked().observe(this, isLocked -> {
             if (isLocked) {

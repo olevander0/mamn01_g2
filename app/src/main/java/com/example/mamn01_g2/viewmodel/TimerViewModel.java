@@ -19,8 +19,8 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
     private final MutableLiveData<Boolean> isTimerRunningLiveData = new MutableLiveData<>(false);
     private final MediatorLiveData<Boolean> lockInState = new MediatorLiveData<>();
     private final MutableLiveData<Boolean> isLockedLiveData = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> isRingingLiveData = new MutableLiveData<>(false);
     private boolean isTimeLocked = false;
-
 
     public TimerViewModel(Application application) {
         super(application);
@@ -28,6 +28,36 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         timerController = new TimerController(application);
         lockInState.addSource(isFaceUp, value -> updateLockInState());
         lockInState.addSource(isTimerRunningLiveData, value -> updateLockInState());
+    }
+
+    public LiveData<Boolean> getIsRinging() {
+        return isRingingLiveData;
+    }
+
+    public void snoozeTimer() {
+        if (Boolean.TRUE.equals(isRingingLiveData.getValue())) {
+            timerController.stopTimer();
+            isRingingLiveData.setValue(false);
+
+            long snoozeTimeInMillis = 5 * 60 * 1000L;
+            currentTimeLiveData.setValue(snoozeTimeInMillis);
+
+            timerController.startTimer(snoozeTimeInMillis, currentTimeLiveData::postValue, () -> {
+                currentTimeLiveData.postValue(0L);
+                isRingingLiveData.postValue(true); // Ring again when done!
+            });
+
+            timerController.playTickFeedback();
+        }
+    }
+
+    public void stopAlarm() {
+        if (Boolean.TRUE.equals(isRingingLiveData.getValue())) {
+            timerController.stopTimer();
+            isRingingLiveData.setValue(false);
+            currentTimeLiveData.setValue(0L);
+            isTimeLocked = false;
+        }
     }
 
     public void toggleTimeLock() {
@@ -122,15 +152,14 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
 
     @Override
     public void onPhoneFlippedDown() {
-        isFaceUp.setValue(false);
         Long currentSetTime = currentTimeLiveData.getValue();
-
         if (currentSetTime != null && currentSetTime > 0 && !timerController.isRunning()) {
             isTimerRunningLiveData.setValue(true);
             timerController.startTimer(currentSetTime, currentTimeLiveData::postValue, () -> {
                 currentTimeLiveData.postValue(0L);
                 isTimeLocked = false;
-                isTimerRunningLiveData.setValue(false);
+                isTimerRunningLiveData.postValue(false);
+                isRingingLiveData.postValue(true); // ALARM TRIGGERED! 🔔
             });
         }
     }
@@ -142,23 +171,9 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
 
     @Override
     public void onPhoneLiftedFaceDown() {
-        long fiveMinutesInMillis = 5 * 60 * 1000L;
-
-        Long currentTime = currentTimeLiveData.getValue();
-        if (currentTime == null) currentTime = 0L;
-
-        long newTime = currentTime + fiveMinutesInMillis;
-
-        if (timerController.isRunning()) {
-            timerController.stopTimer();
-            currentTimeLiveData.postValue(newTime);
-
-            timerController.startTimer(newTime, currentTimeLiveData::postValue, () -> currentTimeLiveData.postValue(0L));
-        } else {
-            currentTimeLiveData.setValue(newTime);
+        if (Boolean.TRUE.equals(isRingingLiveData.getValue())) {
+            snoozeTimer();
         }
-
-        timerController.playShortHaptic();
     }
 
     @Override
