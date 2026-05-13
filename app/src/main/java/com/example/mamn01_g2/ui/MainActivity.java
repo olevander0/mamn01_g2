@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -20,6 +19,7 @@ import androidx.core.view.ViewCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.mamn01_g2.R;
+import com.example.mamn01_g2.timer.TimerState;
 import com.example.mamn01_g2.viewmodel.TimerViewModel;
 
 public class MainActivity extends AppCompatActivity {
@@ -27,65 +27,30 @@ public class MainActivity extends AppCompatActivity {
     private TimerViewModel viewModel;
     private ClockView clockView;
 
-    private AlertDialog alertDialog;
+    private Button snoozeButton;
+    private Button actionButton; // Handles Lock AND Stop
+    private TextView instructionsText;
+    private AppCompatImageButton infoButton;
+    private ConstraintLayout rootLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button snoozeButton = findViewById(R.id.snoozeButton);
-        Button lockButton = findViewById(R.id.btn_lock_toggle);
-        TextView instructionsText = findViewById(R.id.tv_instruction);
-
+        snoozeButton = findViewById(R.id.snoozeButton);
+        actionButton = findViewById(R.id.btn_lock_toggle);
+        instructionsText = findViewById(R.id.tv_instruction);
         clockView = findViewById(R.id.clock_view);
-        viewModel = new ViewModelProvider(this).get(TimerViewModel.class);
         timePicker = findViewById(R.id.time_picker);
-        lockButton.setOnClickListener(v -> viewModel.toggleTimeLock());
-        snoozeButton.setOnClickListener(v -> viewModel.snoozeTimer());
+        infoButton = findViewById(R.id.btn_info);
+        rootLayout = findViewById(R.id.main);
 
-        // Watch Alarm State! 🚨
-        viewModel.getIsRinging().observe(this, isRinging -> {
-            if (isRinging) {
-                instructionsText.setText("TIME UP! ⏰\nLift phone or press Snooze");
-                instructionsText.setTextColor(Color.parseColor("#C5283D")); // Red!
+        viewModel = new ViewModelProvider(this).get(TimerViewModel.class);
 
-                snoozeButton.setVisibility(View.VISIBLE); // Show Snooze!
+        // One observer for State Machine
+        viewModel.getTimerState().observe(this, this::updateUIForState);
 
-                lockButton.setText("STOP ALARM");
-                lockButton.setOnClickListener(v -> viewModel.stopAlarm()); // Change action!
-            } else {
-                snoozeButton.setVisibility(View.GONE); // Hide Snooze!
-
-                // Revert to normal lock logic
-                lockButton.setOnClickListener(v -> viewModel.toggleTimeLock());
-
-                // Let other observer handle normal text colors...
-            }
-        });
-
-
-
-        viewModel.getIsLocked().observe(this, isLocked -> {
-            if (isLocked) {
-                // TIME IS LOCKED! 🔒
-                instructionsText.setText("LOCKED! 🔒\nFlip phone face down to start");
-                instructionsText.setTextColor(Color.parseColor("#4CAF50")); // Green!
-                lockButton.setText(R.string.unlock_time);
-
-                // Bounce Animation! 💥
-                instructionsText.animate().scaleX(1.1f).scaleY(1.1f).setDuration(150).withEndAction(() -> {
-                    instructionsText.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150);
-                });
-            } else {
-                // TIME IS SETTING / SPINNING! 🌀
-                instructionsText.setText("Spin phone to set time\nShake to reset");
-                instructionsText.setTextColor(Color.GRAY);
-                lockButton.setText(R.string.lock_time);
-            }
-        });
-
-        AppCompatImageButton infoButton = findViewById(R.id.btn_info);
         ViewCompat.setTooltipText(infoButton, getString(R.string.info_button_content_description));
         infoButton.setOnClickListener(v -> showInfoDialog());
 
@@ -97,10 +62,113 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 clockView.updateTime(timeInMillis);
             }
-
             timePicker.setSelectedSeconds((int) (timeInMillis / 1000));
         });
-        viewModel.getLockInState().observe(this, this::updateUILockIn);
+    }
+
+
+    private void updateUIForState(TimerState state) {
+        cancelPulseAnimation(clockView); // Stop shaking by default
+        rootLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.background_color));
+
+        switch (state) {
+            case IDLE:
+                instructionsText.setVisibility(View.VISIBLE);
+                instructionsText.setText("Spin phone to set time\nShake to reset");
+                instructionsText.setTextColor(Color.GRAY);
+                timePicker.setVisibility(View.VISIBLE);
+                infoButton.setVisibility(View.VISIBLE);
+
+                snoozeButton.setVisibility(View.GONE);
+
+                actionButton.setVisibility(View.VISIBLE);
+                actionButton.setText(R.string.lock_time);
+                actionButton.setOnClickListener(v -> viewModel.toggleTimeLock());
+                break;
+
+            case LOCKED:
+                instructionsText.setVisibility(View.VISIBLE);
+                instructionsText.setText("LOCKED! 🔒\nFlip phone face down to start");
+                instructionsText.setTextColor(Color.parseColor("#4CAF50")); // Green!
+                timePicker.setVisibility(View.VISIBLE);
+                infoButton.setVisibility(View.VISIBLE);
+
+                snoozeButton.setVisibility(View.GONE);
+
+                actionButton.setVisibility(View.VISIBLE);
+                actionButton.setText(R.string.unlock_time);
+                actionButton.setOnClickListener(v -> viewModel.toggleTimeLock());
+
+                // Small bounce Animation
+                instructionsText.animate().scaleX(1.1f).scaleY(1.1f).setDuration(150).withEndAction(() -> instructionsText.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150));
+                break;
+
+            case FOCUSING:
+                // Minimal UI
+                instructionsText.setVisibility(View.GONE);
+                timePicker.setVisibility(View.GONE);
+                infoButton.setVisibility(View.GONE);
+
+                snoozeButton.setVisibility(View.VISIBLE);
+                snoozeButton.setOnClickListener(v -> viewModel.snoozeTimer());
+
+                actionButton.setVisibility(View.VISIBLE);
+                actionButton.setText("STOP");
+                actionButton.setOnClickListener(v -> viewModel.stopAlarm());
+                break;
+
+            case WARNING:
+                // Red alert! Timer running but phone lifted.
+                instructionsText.setVisibility(View.GONE);
+                timePicker.setVisibility(View.GONE);
+                infoButton.setVisibility(View.GONE);
+
+                snoozeButton.setVisibility(View.VISIBLE);
+                snoozeButton.setOnClickListener(v -> viewModel.snoozeTimer());
+
+                actionButton.setVisibility(View.VISIBLE);
+                actionButton.setText("STOP");
+                actionButton.setOnClickListener(v -> viewModel.stopAlarm());
+
+                rootLayout.setBackgroundColor(Color.parseColor("#481D24"));
+                pulseAnimation(clockView); // Pulsing animation for clock
+                break;
+
+            case RINGING:
+                instructionsText.setVisibility(View.VISIBLE);
+                instructionsText.setText("TIME UP! ⏰\nLift phone or press Snooze");
+                instructionsText.setTextColor(Color.parseColor("#C5283D"));
+                timePicker.setVisibility(View.GONE);
+                infoButton.setVisibility(View.GONE);
+
+                snoozeButton.setVisibility(View.VISIBLE);
+                snoozeButton.setOnClickListener(v -> viewModel.snoozeTimer());
+
+                actionButton.setVisibility(View.VISIBLE);
+                actionButton.setText("STOP ALARM");
+                actionButton.setOnClickListener(v -> viewModel.stopAlarm());
+
+                pulseAnimation(clockView);
+                break;
+        }
+    }
+
+    private void pulseAnimation(View view) {
+        view.animate().scaleX(1.1f).scaleY(1.1f).setDuration(400).withEndAction(() -> {
+            view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(400).withEndAction(() -> {
+                TimerState state = viewModel.getTimerState().getValue();
+                // Prevent Memory Leak. Only loop when warning or ringing
+                if (state == TimerState.WARNING || state == TimerState.RINGING) {
+                    pulseAnimation(view);
+                }
+            });
+        }).start();
+    }
+
+    private void cancelPulseAnimation(View view) {
+        view.animate().cancel();
+        view.setScaleX(1.0f);
+        view.setScaleY(1.0f);
     }
 
     private void showInfoDialog() {
@@ -137,35 +205,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateUILockIn(boolean isLockedIn) {
-        ConstraintLayout rootLayout = findViewById(R.id.main);
-
-        if (isLockedIn) {
-            showWarningDialog();
-            rootLayout.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
-        } else {
-            hideWarningDialog();
-            rootLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.background_color));
-        }
-    }
-
-    private void showWarningDialog() {
-        if (alertDialog == null || !alertDialog.isShowing()) {
-            alertDialog = new AlertDialog.Builder(this).setTitle("LOCK IN!!!").setMessage("Turn phone face down").setCancelable(false).create();
-            alertDialog.show();
-            if (alertDialog.getWindow() != null) {
-                WindowManager.LayoutParams params = alertDialog.getWindow().getAttributes();
-
-                params.y = -300; // negative = move upward
-
-                alertDialog.getWindow().setAttributes(params);
-            }
-        }
-    }
-
-    private void hideWarningDialog() {
-        if (alertDialog != null && alertDialog.isShowing()) {
-            alertDialog.dismiss();
-        }
-    }
 }

@@ -4,86 +4,27 @@ import android.app.Application;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.mamn01_g2.sensor.GestureListener;
 import com.example.mamn01_g2.sensor.SensorController;
 import com.example.mamn01_g2.timer.TimerController;
+import com.example.mamn01_g2.timer.TimerState;
 
 public class TimerViewModel extends AndroidViewModel implements GestureListener {
     private final SensorController sensorController;
     private final TimerController timerController;
     private final MutableLiveData<Long> currentTimeLiveData = new MutableLiveData<>(0L);
-    private final MutableLiveData<Boolean> isFaceUp = new MutableLiveData<>(false);
-    private final MutableLiveData<Boolean> isTimerRunningLiveData = new MutableLiveData<>(false);
-    private final MediatorLiveData<Boolean> lockInState = new MediatorLiveData<>();
-    private final MutableLiveData<Boolean> isLockedLiveData = new MutableLiveData<>(false);
-    private final MutableLiveData<Boolean> isRingingLiveData = new MutableLiveData<>(false);
-    private boolean isTimeLocked = false;
+    private final MutableLiveData<TimerState> timerStateLiveData = new MutableLiveData<>(TimerState.IDLE);
 
     public TimerViewModel(Application application) {
         super(application);
         sensorController = new SensorController(application, this);
         timerController = new TimerController(application);
-        lockInState.addSource(isFaceUp, value -> updateLockInState());
-        lockInState.addSource(isTimerRunningLiveData, value -> updateLockInState());
     }
 
-    public LiveData<Boolean> getIsRinging() {
-        return isRingingLiveData;
-    }
-
-    public void snoozeTimer() {
-        if (Boolean.TRUE.equals(isRingingLiveData.getValue())) {
-            timerController.stopTimer();
-            isRingingLiveData.setValue(false);
-
-            long snoozeTimeInMillis = 5 * 60 * 1000L;
-            currentTimeLiveData.setValue(snoozeTimeInMillis);
-
-            timerController.startTimer(snoozeTimeInMillis, currentTimeLiveData::postValue, () -> {
-                currentTimeLiveData.postValue(0L);
-                isRingingLiveData.postValue(true); // Ring again when done!
-            });
-
-            timerController.playTickFeedback();
-        }
-    }
-
-    public void stopAlarm() {
-        if (Boolean.TRUE.equals(isRingingLiveData.getValue())) {
-            timerController.stopTimer();
-            isRingingLiveData.setValue(false);
-            currentTimeLiveData.setValue(0L);
-            isTimeLocked = false;
-        }
-    }
-
-    public void toggleTimeLock() {
-        Long currentSetTime = currentTimeLiveData.getValue();
-        if (!timerController.isRunning() && currentSetTime != null && currentSetTime > 0) {
-
-            isTimeLocked = !isTimeLocked;
-            isLockedLiveData.setValue(isTimeLocked);
-            timerController.playTickFeedback();
-        }
-    }
-
-    public LiveData<Boolean> getIsLocked() {
-        return isLockedLiveData;
-    }
-
-    public LiveData<Boolean> getIsFaceUp() {
-        return isFaceUp;
-    }
-
-    public LiveData<Boolean> getIsTimerRunning() {
-        return isTimerRunningLiveData;
-    }
-
-    public LiveData<Boolean> getLockInState() {
-        return lockInState;
+    public LiveData<TimerState> getTimerState() {
+        return timerStateLiveData;
     }
 
     public LiveData<Long> getCurrentTime() {
@@ -94,18 +35,64 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         return timerController.isRunning();
     }
 
+    // --- BUTTON & UI ACTIONS --- 🔘
 
-    /**
-     * Called when the user manually sets the time via the TimePicker UI.
-     */
-    public void manuallySetTime(long timeInMillis) {
-        if (!timerController.isRunning()) {
-            currentTimeLiveData.setValue(timeInMillis);
-            isTimeLocked = false;
-            timerController.playTickFeedback();
-            isLockedLiveData.setValue(false);
+    public void toggleTimeLock() {
+        TimerState currentState = timerStateLiveData.getValue();
+        Long currentSetTime = currentTimeLiveData.getValue();
+
+        if (currentSetTime != null && currentSetTime > 0) {
+            if (currentState == TimerState.IDLE) {
+                timerStateLiveData.setValue(TimerState.LOCKED);
+                timerController.playTickFeedback();
+            } else if (currentState == TimerState.LOCKED) {
+                timerStateLiveData.setValue(TimerState.IDLE);
+                timerController.playTickFeedback();
+            }
         }
     }
+
+    public void manuallySetTime(long timeInMillis) {
+        TimerState currentState = timerStateLiveData.getValue();
+        // Only allow manual set if not currently running alarm or focus
+        if (currentState == TimerState.IDLE || currentState == TimerState.LOCKED) {
+            currentTimeLiveData.setValue(timeInMillis);
+            timerStateLiveData.setValue(TimerState.IDLE); // Auto-unlock on manual change! 🔓
+            timerController.playTickFeedback();
+        }
+    }
+
+    public void snoozeTimer() {
+        TimerState currentState = timerStateLiveData.getValue();
+        // Snooze works if alarm is ringing OR if warning screen is active
+        if (currentState == TimerState.RINGING || currentState == TimerState.WARNING) {
+            timerController.stopTimer();
+
+            long snoozeTimeInMillis = 5 * 60 * 1000L; // 5 mins
+            currentTimeLiveData.setValue(snoozeTimeInMillis);
+
+            // Back to focus state
+            timerStateLiveData.setValue(TimerState.FOCUSING);
+
+            timerController.startTimer(snoozeTimeInMillis, currentTimeLiveData::postValue, () -> {
+                currentTimeLiveData.postValue(0L);
+                timerStateLiveData.postValue(TimerState.RINGING);
+            });
+
+            timerController.playTickFeedback();
+        }
+    }
+
+    public void stopAlarm() {
+        TimerState currentState = timerStateLiveData.getValue();
+        if (currentState == TimerState.RINGING || currentState == TimerState.WARNING || currentState == TimerState.FOCUSING) {
+            timerController.stopTimer();
+            currentTimeLiveData.setValue(0L);
+            timerStateLiveData.setValue(TimerState.IDLE);
+        }
+    }
+
+    // --- SENSOR LIFECYCLE --- ♻️
 
     public void startSensors() {
         sensorController.startListening();
@@ -115,31 +102,27 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
         sensorController.stopListening();
     }
 
-    public void lockTime() {
-        isTimeLocked = true;
-    }
-
     @Override
     protected void onCleared() {
         super.onCleared();
+        // Prevent Memory Leaks during Garbage Collection! 🗑️
         sensorController.stopListening();
         timerController.stopTimer();
-
     }
+
+    // --- GESTURE ROUTING --- 🪨📱
 
     @Override
     public void onTimeRotate(int minutesToChange) {
-        if (isTimeLocked || isTimerRunning()) {
+        if (timerStateLiveData.getValue() != TimerState.IDLE) {
             return;
         }
 
         long millisToChange = minutesToChange * 60000L;
-
         Long currentTime = currentTimeLiveData.getValue();
         if (currentTime == null) currentTime = 0L;
 
         long newTime = currentTime + millisToChange;
-
         if (newTime < 0) {
             newTime = 0;
         }
@@ -152,27 +135,42 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
 
     @Override
     public void onPhoneFlippedDown() {
+        TimerState currentState = timerStateLiveData.getValue();
         Long currentSetTime = currentTimeLiveData.getValue();
-        if (currentSetTime != null && currentSetTime > 0 && !timerController.isRunning()) {
-            isTimerRunningLiveData.setValue(true);
+
+        if (currentState == TimerState.WARNING) {
+            timerStateLiveData.setValue(TimerState.FOCUSING);
+            return;
+        }
+
+        if (currentSetTime != null && currentSetTime > 0 && (currentState == TimerState.IDLE || currentState == TimerState.LOCKED)) {
+
+            timerStateLiveData.setValue(TimerState.FOCUSING); // Enter Focus Mode!
+
             timerController.startTimer(currentSetTime, currentTimeLiveData::postValue, () -> {
                 currentTimeLiveData.postValue(0L);
-                isTimeLocked = false;
-                isTimerRunningLiveData.postValue(false);
-                isRingingLiveData.postValue(true); // ALARM TRIGGERED! 🔔
+                timerStateLiveData.postValue(TimerState.RINGING); // Time up! 🔔
             });
         }
     }
 
     @Override
     public void onPhoneFlippedUp() {
-        isFaceUp.setValue(true);
+        TimerState currentState = timerStateLiveData.getValue();
+
+        if (currentState == TimerState.FOCUSING) {
+            timerStateLiveData.setValue(TimerState.WARNING);
+        }
     }
 
     @Override
     public void onPhoneLiftedFaceDown() {
-        if (Boolean.TRUE.equals(isRingingLiveData.getValue())) {
-            snoozeTimer();
+        TimerState currentState = timerStateLiveData.getValue();
+
+        if (currentState == TimerState.RINGING) {
+            snoozeTimer(); // Lift while ringing = SNOOZE
+        } else if (currentState == TimerState.FOCUSING) {
+            timerStateLiveData.setValue(TimerState.WARNING); // Lift while focusing = WARNING
         }
     }
 
@@ -182,16 +180,6 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
             timerController.stopTimer();
         }
         currentTimeLiveData.setValue(0L);
-        isTimeLocked = false;
-        isLockedLiveData.setValue(false);
+        timerStateLiveData.setValue(TimerState.IDLE);
     }
-
-    private void updateLockInState() {
-        Boolean faceUp = isFaceUp.getValue();
-        Boolean running = isTimerRunningLiveData.getValue();
-        if (faceUp == null) faceUp = false;
-        if (running == null) running = false;
-        lockInState.setValue(faceUp && running);
-    }
-
 }
