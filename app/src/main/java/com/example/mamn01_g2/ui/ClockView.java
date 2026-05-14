@@ -121,23 +121,18 @@ public class ClockView extends View {
         int width = getWidth();
         int height = getHeight();
 
-        // Find exact center of cave wall 🎯
         float centerX = width / 2f;
         float centerY = height / 2f;
 
-        // Gronk use precise progressRadius from dimens.xml! 📐
         rectF.set(centerX - progressRadius, centerY - progressRadius, centerX + progressRadius, centerY + progressRadius);
 
-        // SVG background draws circle. Canvas only draws progress arc!
         canvas.drawArc(rectF, -90, progressAngle, false, progressPaint);
 
         canvas.save();
         canvas.rotate(-rotationDegrees, centerX, centerY);
-
         String timeText = formatTime(seconds);
         float textOffset = (textPaint.descent() + textPaint.ascent()) / 2;
         canvas.drawText(timeText, centerX, centerY - textOffset, textPaint);
-
         canvas.restore();
     }
 
