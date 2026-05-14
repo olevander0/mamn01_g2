@@ -43,7 +43,7 @@
             android:background="@drawable/ic_clock_bg"
             app:clockBackgroundColor="@color/orange"
             app:clockProgressColor="@color/progress"
-            app:clockStrokeWidth="15dp"
+            app:clockStrokeWidth="@dimen/clock_progress_stroke"
             app:clockTextColor="@color/text" />
 
         <com.example.mamn01_g2.ui.TimePicker

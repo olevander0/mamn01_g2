@@ -20,7 +20,6 @@ import java.util.Locale;
 public class ClockView extends View {
     private Paint progressPaint;
     private Paint textPaint;
-    // Gronk DELETE circlePaint here! 🚫⭕
     private RectF rectF;
 
     private float rotationDegrees = 0;
@@ -118,11 +117,19 @@ public class ClockView extends View {
     protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
 
-        int width = getWidth();
-        int height = getHeight();
+        float width = getWidth();
+        float height = getHeight();
 
-        float centerX = width / 2f;
-        float centerY = height / 2f;
+        float paddingLeft = getPaddingLeft();
+        float paddingTop = getPaddingTop();
+        float paddingRight = getPaddingRight();
+        float paddingBottom = getPaddingBottom();
+
+        float contentWidth = width - paddingLeft - paddingRight;
+        float contentHeight = height - paddingTop - paddingBottom;
+
+        float centerX = paddingLeft + (contentWidth / 2f);
+        float centerY = paddingTop + (contentHeight / 2f);
 
         rectF.set(centerX - progressRadius, centerY - progressRadius, centerX + progressRadius, centerY + progressRadius);
 
@@ -134,6 +141,12 @@ public class ClockView extends View {
         float textOffset = (textPaint.descent() + textPaint.ascent()) / 2;
         canvas.drawText(timeText, centerX, centerY - textOffset, textPaint);
         canvas.restore();
+
+//        Paint debugPaint = new Paint();
+//        debugPaint.setColor(Color.BLUE);
+//        debugPaint.setStrokeWidth(2f);
+//        canvas.drawLine(centerX, 0, centerX, height, debugPaint);
+//        canvas.drawLine(0, centerY, width, centerY, debugPaint);
     }
 
     private String formatTime(int totalSeconds) {
