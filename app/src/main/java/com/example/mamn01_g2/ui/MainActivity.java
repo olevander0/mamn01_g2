@@ -1,8 +1,12 @@
 package com.example.mamn01_g2.ui;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -165,10 +169,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void pulseAnimation(View view) {
+
+        Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null && vibrator.hasVibrator()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(300, VibrationEffect.DEFAULT_AMPLITUDE));
+            } else {
+                vibrator.vibrate(300);
+            }
+        }
+
         view.animate().scaleX(1.1f).scaleY(1.1f).setDuration(400).withEndAction(() -> {
             view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(400).withEndAction(() -> {
                 TimerState state = viewModel.getTimerState().getValue();
-                // Prevent Memory Leak. Only loop when warning or ringing
                 if (state == TimerState.WARNING || state == TimerState.RINGING) {
                     pulseAnimation(view);
                 }
