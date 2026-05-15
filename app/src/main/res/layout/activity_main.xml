@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
+    android:clipChildren="false"
     android:keepScreenOn="true"
     tools:context=".ui.MainActivity">
 
@@ -30,6 +31,8 @@
         android:id="@+id/clockContainer"
         android:layout_width="320dp"
         android:layout_height="320dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

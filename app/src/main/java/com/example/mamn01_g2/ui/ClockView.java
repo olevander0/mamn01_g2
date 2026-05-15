@@ -141,12 +141,6 @@ public class ClockView extends View {
         float textOffset = (textPaint.descent() + textPaint.ascent()) / 2;
         canvas.drawText(timeText, centerX, centerY - textOffset, textPaint);
         canvas.restore();
-
-//        Paint debugPaint = new Paint();
-//        debugPaint.setColor(Color.BLUE);
-//        debugPaint.setStrokeWidth(2f);
-//        canvas.drawLine(centerX, 0, centerX, height, debugPaint);
-//        canvas.drawLine(0, centerY, width, centerY, debugPaint);
     }
 
     private String formatTime(int totalSeconds) {
