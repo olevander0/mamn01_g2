@@ -16,6 +16,7 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
     private final TimerController timerController;
     private final MutableLiveData<Long> currentTimeLiveData = new MutableLiveData<>(0L);
     private final MutableLiveData<TimerState> timerStateLiveData = new MutableLiveData<>(TimerState.IDLE);
+    private boolean isPhoneFaceDown = false;
 
     public TimerViewModel(Application application) {
         super(application);
@@ -64,22 +65,33 @@ public class TimerViewModel extends AndroidViewModel implements GestureListener 
 
     public void snoozeTimer() {
         TimerState currentState = timerStateLiveData.getValue();
-        // Snooze works if alarm is ringing OR if warning screen is active
+
         if (currentState == TimerState.RINGING || currentState == TimerState.WARNING) {
             timerController.stopTimer();
 
-            long snoozeTimeInMillis = 5 * 60 * 1000L; // 5 mins
-            currentTimeLiveData.setValue(snoozeTimeInMillis);
+            long snoozeTimeInMillis = 5 * 60 * 1000L;
 
-            // Back to focus state
-            timerStateLiveData.setValue(TimerState.FOCUSING);
+            Long currentVal = currentTimeLiveData.getValue();
+            long currentTimeInMillis = (currentVal != null) ? currentVal : 0L;
 
-            timerController.startTimer(snoozeTimeInMillis, currentTimeLiveData::postValue, () -> {
-                currentTimeLiveData.postValue(0L);
-                timerStateLiveData.postValue(TimerState.RINGING);
-            });
+            if (currentTimeInMillis >= 0L) {
+                long newTotalTimeInMillis = currentTimeInMillis + snoozeTimeInMillis;
 
-            timerController.playTickFeedback();
+                currentTimeLiveData.setValue(newTotalTimeInMillis);
+
+                if (isPhoneFaceDown) {
+                    timerStateLiveData.setValue(TimerState.FOCUSING);
+                } else {
+                    timerStateLiveData.setValue(TimerState.WARNING);
+                }
+
+                timerController.startTimer(newTotalTimeInMillis, currentTimeLiveData::postValue, () -> {
+                    currentTimeLiveData.postValue(0L);
+                    timerStateLiveData.postValue(TimerState.RINGING);
+                });
+
+                timerController.playTickFeedback();
+            }
         }
     }
 
